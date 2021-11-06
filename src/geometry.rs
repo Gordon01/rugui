@@ -8,38 +8,34 @@ pub enum Axis {
     Both
 }
 pub struct Coordinates {
-    pub x0: i32,
-    pub x1: i32,
-    pub y0: i32,
-    pub y1: i32
+    pub start: (i32, i32),
+    pub end: (i32, i32)
 }
 
 impl Coordinates {
-    pub fn new(x0: i32, x1: i32, y0: i32, y1: i32) -> Self {
+    pub fn new(start: (i32, i32), end: (i32, i32)) -> Self {
         Coordinates {
-            x0: x0,
-            x1: x1,
-            y0: y0,
-            y1: y1
+            start: start,
+            end: end
         }
     }
 
-    pub fn from_relative(x0: i32, y0: i32, dx: i32, dy: i32) -> Self {
-        Coordinates::new(x0, x0 + dx, y0, y0 + dy)
+    pub fn from_relative(start: (i32, i32), delta: (i32, i32)) -> Self {
+        Coordinates::new(start, (start.0 + delta.0, start.1 + delta.1))
     }
 
     pub fn dx(&self) -> i32 {
-        self.x1 - self.x0
+        self.end.0 - self.start.0
     }
 
     pub fn dy(&self) -> i32 {
-        self.y1 - self.y0
+        self.end.1 - self.start.1
     }
 
     pub fn x_iter(&self) -> CoordinatesIterator {
         CoordinatesIterator {
-            start: (self.x0, self.y0),
-            end: (self.x1, self.y1),
+            start: self.start,
+            end: self.end,
             axis: Axis::X,
             index: 0,
         }
@@ -47,8 +43,8 @@ impl Coordinates {
 
     pub fn y_iter(&self) -> CoordinatesIterator {
         CoordinatesIterator {
-            start: (self.x0, self.y0),
-            end: (self.x1, self.y1),
+            start: self.start,
+            end: self.end,
             axis: Axis::Y,
             index: 0,
         }
@@ -61,8 +57,8 @@ impl IntoIterator for Coordinates {
 
     fn into_iter(self) -> Self::IntoIter {
         CoordinatesIterator {
-            start: (self.x0, self.y0),
-            end: (self.x1, self.y1),
+            start: self.start,
+            end: self.end,
             axis: Axis::Both,
             index: 0,
         }
@@ -102,11 +98,11 @@ impl Iterator for CoordinatesIterator {
 impl Framebuffer {
     pub fn draw_line(&mut self, cords: &Coordinates, color: &Color) -> bool {
         let mut D= 2*cords.dy() - cords.dx();
-        let mut y = cords.y0;
+        let mut y = cords.start.1;
 
         if cords.dx() == 0 {
             for y in cords.y_iter() {
-                self.draw_pixel(cords.x0, y, &color);
+                self.draw_pixel(cords.start.0, y, &color);
             }
 
             return true;
@@ -133,17 +129,17 @@ impl Framebuffer {
     }
 
     pub fn draw_rect(&mut self, cords: &Coordinates, color: &Color) -> bool {
-        self.draw_line(cords, color);
-        self.draw_line(cords, color);
-        self.draw_line(cords, color);
-        self.draw_line(cords, color);
+        self.draw_line(&Coordinates::new((cords.start.0, cords.start.1), (cords.start.0, cords.end.1)), color);
+        self.draw_line(&Coordinates::new((cords.start.0, cords.end.1), (cords.end.0, cords.end.1)), color);
+        self.draw_line(&Coordinates::new((cords.end.0, cords.start.1), (cords.end.0, cords.end.1)), color);
+        self.draw_line(&Coordinates::new((cords.start.0, cords.start.1), (cords.end.0, cords.start.1)), color);
 
         true
     }
 
     pub fn draw_filled_rect(&mut self, cords: &Coordinates, color: &Color) -> bool {
         for x in cords.x_iter() {
-            self.draw_vertical_line(x, cords.y0, cords.y1, color);
+            self.draw_vertical_line(x, cords.start.1, cords.end.1, color);
         }
         
         true
