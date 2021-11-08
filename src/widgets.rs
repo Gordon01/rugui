@@ -8,11 +8,11 @@ impl Framebuffer {
         }
 
         self.draw_rect(cords, color);
+        let cords = cords.transform(Axis::Both, -1);
         let position = cords.start.0 + (cords.dx() as f32 * (progress as f32 / 100.0)) as i32;
-        for x in cords.x_iter().skip(1) {
-            let color = if x <= position { Color::Black } else { Color::White };
-            self.draw_vertical_line(x,cords.start.1 + 1, cords.end.1 - 1, &color);
-        }
+        let (filled, empty) = cords.chop(Axis::X, position + 1);
+        self.draw_filled_rect(&filled, color);
+        self.draw_filled_rect(&empty, &Color::White);
 
         true
     }

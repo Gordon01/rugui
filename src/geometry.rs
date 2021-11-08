@@ -7,6 +7,8 @@ pub enum Axis {
     Y,
     Both
 }
+
+#[derive(Debug)]
 pub struct Coordinates {
     pub start: (i32, i32),
     pub end: (i32, i32)
@@ -22,6 +24,28 @@ impl Coordinates {
 
     pub fn from_relative(start: (i32, i32), delta: (i32, i32)) -> Self {
         Coordinates::new(start, (start.0 + delta.0, start.1 + delta.1))
+    }
+
+    pub fn transform(&self, axis: Axis, delta: i32) -> Self {
+        match axis {
+            Axis::X    => Coordinates::new((self.start.0 - delta, self.start.1),
+                                           (self.end.0 + delta, self.end.1)),
+            Axis::Y    => Coordinates::new((self.start.0, self.start.1 - delta),
+                                           (self.end.0, self.end.1 + delta)),
+            Axis::Both => Coordinates::new((self.start.0 - delta, self.start.1 - delta),
+                                           (self.end.0 + delta, self.end.1 + delta)),
+        }
+    }
+
+    pub fn chop(&self, axis: Axis, at: i32) -> (Self, Self) {
+        match axis {
+            Axis::X    => (Coordinates::new(self.start,            (at - 1, self.end.1)),
+                           Coordinates::new((at, self.start.1),     self.end)),
+            Axis::Y    => (Coordinates::new(self.start,            (self.end.0, at - 1)),
+                           Coordinates::new((self.start.0, at),     self.end)),
+            // LOL sorry we probably need some 
+            Axis::Both => (Coordinates::new((0, 0), (0, 0)), Coordinates::new((0, 0), (0, 0)))
+        }
     }
 
     pub fn dx(&self) -> i32 {

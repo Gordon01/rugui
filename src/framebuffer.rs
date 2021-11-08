@@ -47,7 +47,7 @@ impl Framebuffer {
         
         byte = match color {
             Color::Black => byte | 1 << pixel,
-            Color::White => byte & 0 << pixel
+            Color::White => byte & !(1 << pixel)
         };
 
         self.frame[pos as usize] = byte;
