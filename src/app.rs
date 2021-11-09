@@ -1,6 +1,6 @@
 use eframe::{egui, epi};
 use egui::*;
-use rugui::framebuffer::{Framebuffer, Color, Orientation};
+use rugui::framebuffer::{Framebuffer, Color};
 use rugui::geometry::{Coordinates};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
@@ -22,8 +22,8 @@ impl Default for TemplateApp {
         Self {
             // Example stuff:
             label: "Hello World!".to_owned(),
-            value: 2,
-            scroll: 50,
+            value: 0,
+            scroll: 0,
             framebuffer: Framebuffer::new(160, 32, 8).unwrap()
         }
     }
@@ -44,7 +44,7 @@ impl epi::App for TemplateApp {
         //self.framebuffer.draw_line(&Coordinates::new((5, 5), (40, 5)), &Color::Black);
         //self.framebuffer.draw_line(&Coordinates::new((5, 10), (5, 30)), &Color::Black);
         //self.framebuffer.draw_rect(&Coordinates::new((5, 5), (100, 30)), &Color::Black);
-        //self.framebuffer.draw_circle(100, 16, 8, &Color::Black);
+        //self.framebuffer.draw_circle(120, 16, 9, &Color::Black);
         //self.framebuffer.progress_bar(5, 45, 5, 15, 50, &Color::Black);
         //self.framebuffer.table(&Coordinates::new((50, 0), (150, 30)), 3, 3, &Color::Black);
 
@@ -92,11 +92,13 @@ impl epi::App for TemplateApp {
                 ui.text_edit_singleline(label);
             });
 
-            ui.add(egui::Slider::new(value, 0..=100).text("progress"));
+            framebuffer.draw_filled_rect(&Coordinates::new((90, 0),(159, 31)), &Color::White);
+            ui.add(egui::Slider::new(value, 1..=100).text("progress"));
             framebuffer.progress_bar(&Coordinates::new((15, 5),(90, 15)), *value, &Color::Black);
 
-            ui.add(egui::Slider::new(scroll, 0..=100).text("scroll"));
-            framebuffer.scroller(&Coordinates::new((0, 0), (10, 32)), *scroll as i32, 3, Orientation::Vertical, &Color::Black);
+            ui.add(egui::Slider::new(scroll, 0..=16).text("scroll"));
+            //framebuffer.scroller(&Coordinates::new((0, 0), (10, 32)), *scroll as i32, 3, Orientation::Vertical, &Color::Black);
+            framebuffer.draw_circle(120, 16, *scroll, &Color::Black);
 
 
             if ui.button("Increment").clicked() {
@@ -117,8 +119,10 @@ impl epi::App for TemplateApp {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("LCD emulation");
+            draw_image(ui, frame, &framebuffer);
+
             
-            draw_display(ui.painter(), Vec2{x: 300.0, y: 100.0}, &framebuffer);
+            //draw_display(ui.painter(), Vec2{x: 300.0, y: 100.0}, &framebuffer);
         });
 
         if false {
@@ -132,48 +136,36 @@ impl epi::App for TemplateApp {
     }
 }
 
+fn draw_image(ui: &mut Ui, frame: &mut epi::Frame<'_>, framebuffer: &Framebuffer) {
+    let scaling = 4;
+    let width = framebuffer.get_width() as usize * scaling;
+    let height = framebuffer.get_height() as usize * scaling;
 
-fn draw_display(painter: &Painter, start: Vec2, frame: &Framebuffer) {
-    let scaling = 4.0;
+    let mut pixels = vec![Color32::from_gray(200); width * height];
 
-    for x in 0..frame.get_width() {
-        for y in 0..frame.get_height() {
-            let pixel = frame.get_pixel(x, y);
+    for y in 0..framebuffer.get_height() {
+        for x in 0..framebuffer.get_width() {
+            let pixel = framebuffer.get_pixel(x, y);
             let color = match pixel {
                 Color::Black => Color32::from_gray(255),
-                _ => Color32::from_gray(0)
+                _            => Color32::from_gray(0)
             };
-            let net = Color32::from_gray(200);
+            let pos = (y as usize * scaling * width) + (x as usize * scaling);
 
-            let px = start.x + (scaling * x as f32);
-            let py = start.y + (scaling * y as f32);
-
-            painter.rect(
-                Rect::from_min_max(
-                    Pos2{x: px, y: py}, 
-                    Pos2{x: px + scaling - 1.0, y: py + scaling - 1.0}),
-                1.0,
-                color,
-                Stroke::none(),
-            );
-
-            painter.rect(
-                Rect::from_min_max(
-                    Pos2{x: px + scaling - 1.0, y: py}, 
-                    Pos2{x: px + scaling, y: py + scaling}),
-                1.0,
-                net,
-                Stroke::none(),
-            );
-
-            painter.rect(
-                Rect::from_min_max(
-                    Pos2{x: px, y: py + scaling - 1.0}, 
-                    Pos2{x: px + scaling, y: py + scaling}),
-                1.0,
-                net,
-                Stroke::none(),
-            );
+            for dx in 0..scaling-1 {
+                for dy in 0..scaling-1 {
+                    pixels[pos + dx + (dy * width)] = color;
+                }
+            }
         }
     }
+
+    let texture = frame
+        .tex_allocator()
+        .alloc_srgba_premultiplied((width, height), &pixels);
+
+    let size = egui::Vec2::new(width as f32, height as f32);
+    
+    ui.image(texture, size);
+    //frame.tex_allocator().free(texture);
 }
