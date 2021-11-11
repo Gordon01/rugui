@@ -11,6 +11,7 @@ pub struct TemplateApp {
     label: String,
     framebuffer: Framebuffer,
     scroll: u32,
+    texture: TextureId,
 
     // this how you opt-out of serialization of a member
     #[cfg_attr(feature = "persistence", serde(skip))]
@@ -24,6 +25,7 @@ impl Default for TemplateApp {
             label: "Hello World!".to_owned(),
             value: 0,
             scroll: 0,
+            texture: TextureId::default(),
             framebuffer: Framebuffer::new(160, 32, 8).unwrap()
         }
     }
@@ -66,7 +68,7 @@ impl epi::App for TemplateApp {
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
-        let Self { label, value, scroll, framebuffer } = self;
+        let Self { label, value, scroll, framebuffer, texture } = self;
 
         // Examples of how to create different panels and windows.
         // Pick whichever suits you.
@@ -119,10 +121,9 @@ impl epi::App for TemplateApp {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("LCD emulation");
-            draw_image(ui, frame, &framebuffer);
-
             
-            //draw_display(ui.painter(), Vec2{x: 300.0, y: 100.0}, &framebuffer);
+            frame.tex_allocator().free(*texture);
+            *texture = draw_image(ui, frame, &framebuffer);
         });
 
         if false {
@@ -136,7 +137,7 @@ impl epi::App for TemplateApp {
     }
 }
 
-fn draw_image(ui: &mut Ui, frame: &mut epi::Frame<'_>, framebuffer: &Framebuffer) {
+fn draw_image(ui: &mut Ui, frame: &mut epi::Frame<'_>, framebuffer: &Framebuffer) -> TextureId {
     let scaling = 4;
     let width = framebuffer.get_width() as usize * scaling;
     let height = framebuffer.get_height() as usize * scaling;
@@ -167,5 +168,5 @@ fn draw_image(ui: &mut Ui, frame: &mut epi::Frame<'_>, framebuffer: &Framebuffer
     let size = egui::Vec2::new(width as f32, height as f32);
     
     ui.image(texture, size);
-    //frame.tex_allocator().free(texture);
+    texture
 }
