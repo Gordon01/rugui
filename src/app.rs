@@ -1,7 +1,8 @@
 use eframe::{egui, epi};
-use egui::*;
 use rugui::framebuffer::{Framebuffer, Color};
 use rugui::geometry::{Coordinates};
+
+use super::edisplay::{EDisplay};
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
@@ -16,6 +17,8 @@ pub struct TemplateApp {
     // this how you opt-out of serialization of a member
     #[cfg_attr(feature = "persistence", serde(skip))]
     value: u32,
+    #[cfg_attr(feature = "persistence", serde(skip))]
+    display: EDisplay
 }
 
 impl Default for TemplateApp {
@@ -25,7 +28,7 @@ impl Default for TemplateApp {
             label: "Hello World!".to_owned(),
             value: 0,
             scroll: 0,
-            texture: TextureId::default(),
+            display: EDisplay::default(),
             framebuffer: Framebuffer::new(160, 32, 8).unwrap()
         }
     }
@@ -68,7 +71,7 @@ impl epi::App for TemplateApp {
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
-        let Self { label, value, scroll, framebuffer, texture } = self;
+        let Self { label, value, scroll, framebuffer, display } = self;
 
         // Examples of how to create different panels and windows.
         // Pick whichever suits you.
@@ -121,9 +124,12 @@ impl epi::App for TemplateApp {
 
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("LCD emulation");
-            
-            frame.tex_allocator().free(*texture);
-            *texture = draw_image(ui, frame, &framebuffer);
+
+            display.free_texture(frame);
+            *display = EDisplay::new(&framebuffer, 4, frame);
+            ui.add(display.clone());
+
+            ui.label("Right-click on a display to copy coordinates to clipbuffer");
         });
 
         if false {
@@ -135,38 +141,4 @@ impl epi::App for TemplateApp {
             });
         }
     }
-}
-
-fn draw_image(ui: &mut Ui, frame: &mut epi::Frame<'_>, framebuffer: &Framebuffer) -> TextureId {
-    let scaling = 4;
-    let width = framebuffer.get_width() as usize * scaling;
-    let height = framebuffer.get_height() as usize * scaling;
-
-    let mut pixels = vec![Color32::from_gray(200); width * height];
-
-    for y in 0..framebuffer.get_height() {
-        for x in 0..framebuffer.get_width() {
-            let pixel = framebuffer.get_pixel(x, y);
-            let color = match pixel {
-                Color::Black => Color32::from_gray(255),
-                _            => Color32::from_gray(0)
-            };
-            let pos = (y as usize * scaling * width) + (x as usize * scaling);
-
-            for dx in 0..scaling-1 {
-                for dy in 0..scaling-1 {
-                    pixels[pos + dx + (dy * width)] = color;
-                }
-            }
-        }
-    }
-
-    let texture = frame
-        .tex_allocator()
-        .alloc_srgba_premultiplied((width, height), &pixels);
-
-    let size = egui::Vec2::new(width as f32, height as f32);
-    
-    ui.image(texture, size);
-    texture
 }

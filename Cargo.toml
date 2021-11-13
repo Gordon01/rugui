@@ -13,6 +13,7 @@ crate-type = ["cdylib", "rlib"]
 eframe = "0.15.0" # Gives us egui, epi and web+native backends
 rugui = { path = "../rugui" }
 serde = { version = "1", features = ["derive"], optional = true }
+copypasta = "0.7.1"
 
 [features]
 default = []
