@@ -36,6 +36,7 @@ impl Framebuffer {
         })
     }
 
+    //assert
     pub fn draw_pixel(&mut self, x: i32, y: i32, color: &Color) -> bool {
         if self.width <= x || self.height <= y {
             return false
