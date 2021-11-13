@@ -1,6 +1,6 @@
 use eframe::{egui, epi};
 use rugui::framebuffer::{Framebuffer, Color};
-use rugui::geometry::{Coordinates};
+use rugui::coordinates::bounding_box::BBox;
 
 use super::edisplay::{EDisplay};
 
@@ -45,12 +45,10 @@ impl epi::App for TemplateApp {
         _frame: &mut epi::Frame<'_>,
         _storage: Option<&dyn epi::Storage>,
     ) {
-        //self.framebuffer.draw_line(&Coordinates::new((5, 5), (40, 5)), &Color::Black);
-        //self.framebuffer.draw_line(&Coordinates::new((5, 10), (5, 30)), &Color::Black);
-        //self.framebuffer.draw_rect(&Coordinates::new((5, 5), (100, 30)), &Color::Black);
-        //self.framebuffer.draw_circle(120, 16, 9, &Color::Black);
-        //self.framebuffer.progress_bar(5, 45, 5, 15, 50, &Color::Black);
-        //self.framebuffer.table(&Coordinates::new((50, 0), (150, 30)), 3, 3, &Color::Black);
+        //self.framebuffer.draw_line(&BBox::new((5, 5).into(), (40, 5).into()), &Color::Black);
+        //self.framebuffer.draw_line(&BBox::new((5, 10).into(), (5, 30).into()), &Color::Black);
+        //self.framebuffer.draw_line(&BBox::new((5, 5).into(), (80, 30).into()), &Color::Black);
+        //self.framebuffer.table(&BBox::new((50, 0).into(), (150, 30).into()), 3, 3, &Color::Black);
 
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
@@ -96,13 +94,13 @@ impl epi::App for TemplateApp {
                 ui.text_edit_singleline(label);
             });
 
-            framebuffer.draw_filled_rect(&Coordinates::new((90, 0),(159, 31)), &Color::White);
+            framebuffer.draw_filled_rect(BBox::new((90, 0).into(), (159, 31).into()), &Color::White);
             ui.add(egui::Slider::new(value, 1..=100).text("progress"));
-            framebuffer.progress_bar(&Coordinates::new((15, 5),(90, 15)), *value, &Color::Black);
+            framebuffer.progress_bar(BBox::new((15, 5).into(), (90, 15).into()), *value, &Color::Black);
 
             ui.add(egui::Slider::new(scroll, 0..=16).text("scroll"));
             //framebuffer.scroller(&Coordinates::new((0, 0), (10, 32)), *scroll as i32, 3, Orientation::Vertical, &Color::Black);
-            framebuffer.draw_circle(120, 16, *scroll, &Color::Black);
+            framebuffer.draw_circle((120, 16).into(), *scroll, &Color::Black);
 
 
             if ui.button("Increment").clicked() {
@@ -128,7 +126,7 @@ impl epi::App for TemplateApp {
             *display = EDisplay::new(&framebuffer, 4, frame);
             ui.add(display.clone());
 
-            ui.label("Right-click on a display to copy coordinates to clipbuffer");
+            ui.label("Right-click on a display to copy coordinates to clip buffer");
         });
 
         if false {

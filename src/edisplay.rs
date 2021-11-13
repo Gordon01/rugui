@@ -1,7 +1,7 @@
 use copypasta::{ClipboardContext, ClipboardProvider};
 use eframe::{egui, epi};
 use egui::*;
-use rugui::cvec::CVec;
+use rugui::coordinates::cvec::CVec;
 use rugui::framebuffer::{Color, Framebuffer};
 
 /// A widget to render a screen emulator
