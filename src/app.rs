@@ -12,7 +12,6 @@ pub struct TemplateApp {
     label: String,
     framebuffer: Framebuffer,
     scroll: u32,
-    texture: TextureId,
 
     // this how you opt-out of serialization of a member
     #[cfg_attr(feature = "persistence", serde(skip))]
