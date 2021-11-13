@@ -1,10 +1,8 @@
 [package]
-name = "eframe_template"
+name = "rugui_emulator"
 version = "0.1.0"
-authors = ["Emil Ernerfeldt <emilernerfeldt@gmail.com>"]
+authors = ["Alexander Sergeev <etc9053@gmail.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [lib]
 crate-type = ["cdylib", "rlib"]

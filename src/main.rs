@@ -5,7 +5,7 @@
 // When compiling natively:
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
-    let app = eframe_template::TemplateApp::default();
+    let app = rugui_emulator::DisplayEmulator::default();
     let native_options = eframe::NativeOptions {
         always_on_top: false,
         maximized: false,

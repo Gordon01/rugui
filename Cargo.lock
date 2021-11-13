@@ -488,16 +488,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "eframe_template"
-version = "0.1.0"
-dependencies = [
- "copypasta",
- "eframe",
- "rugui",
- "serde",
-]
-
-[[package]]
 name = "egui"
 version = "0.15.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1219,6 +1209,16 @@ dependencies = [
 [[package]]
 name = "rugui"
 version = "0.1.0"
+
+[[package]]
+name = "rugui_emulator"
+version = "0.1.0"
+dependencies = [
+ "copypasta",
+ "eframe",
+ "rugui",
+ "serde",
+]
 
 [[package]]
 name = "rustc-demangle"
