@@ -3,65 +3,120 @@ use crate::coordinates::cvec::CVec;
 
 use super::framebuffer::*;
 use super::coordinates::bounding_box::*;
+use super::framebuffer::PixelDraw;
 
-impl Framebuffer {
-    pub fn draw_line(&mut self, bbox: BBox, color: &Color) -> bool {
+pub struct Line {
+    bbox: BBox,
+    color: Color,
+    vertical: bool
+}
+
+impl Line {
+    pub fn new(bbox: BBox, color: Color) -> Self {
+        Self { bbox, color, vertical: false }
+    }
+
+    pub fn new_vertical(bbox: BBox, color: Color) -> Self {
+        Self { bbox, color, vertical: true }
+    }
+}
+
+impl Line {
+    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+        if self.vertical {
+            for y in self.bbox.start.y..=self.bbox.end.y {
+                canvas.draw_pixel(self.bbox.start.x, y, &self.color);
+            }
+
+            return;
+        }
+
+        let bbox = self.bbox;
+        let color = self.color;
+
         let mut delta = 2*bbox.height() as i32 - bbox.width() as i32;
         let mut y = bbox.start.y;
 
         if bbox.width() == 0 {
             for y in bbox.iter_y() {
-                self.draw_pixel(bbox.start.x, y, &color);
+                canvas.draw_pixel(bbox.start.x, y, &color);
             }
 
-            return true;
+            return;
         }
     
         for x in bbox.iter_x() {
-            self.draw_pixel(x, y, &color);
+            canvas.draw_pixel(x, y, &color);
             if delta > 0 {
                 y += 1;
                 delta = delta - 2*bbox.width() as i32;
             }
             delta = delta + 2*bbox.height() as i32;
         }
+    }
+}
 
-        true
+pub struct Rect {
+    bbox: BBox,
+    color: Color,
+    filled: bool
+}
+
+impl Rect {
+    pub fn new(bbox: BBox, color: Color) -> Self {
+        Self { bbox, color, filled: false }
     }
 
-    pub fn draw_vertical_line(&mut self, start: CVec, y1: i32, color: &Color) -> bool {
-        for y in start.y..=y1 {
-            self.draw_pixel(start.x, y, &color);
+    pub fn new_filled(bbox: BBox, color: Color) -> Self {
+        Self { bbox, color, filled: true }
+    }
+}
+
+impl Rect {
+    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+        if self.filled {
+            for x in self.bbox.iter_x() {
+                let bbox = BBox::new((x, self.bbox.start.y).into(), self.bbox.end);
+                Line::new_vertical(bbox, self.color).draw(canvas);
+            }
+
+            return;
         }
 
-        true
+        let left_bottom = CVec::new(self.bbox.start.x, self.bbox.end.y  );
+        let right_top   = CVec::new(self.bbox.end.x,   self.bbox.start.y);
+        let bbox = self.bbox;
+        let color = self.color;
+
+        Line::new(BBox::new(bbox.start,  left_bottom), color).draw(canvas);
+        Line::new(BBox::new(left_bottom, bbox.end),    color).draw(canvas);
+        Line::new(BBox::new(right_top,   bbox.end),    color).draw(canvas);
+        Line::new(BBox::new(bbox.start,  right_top),   color).draw(canvas);
     }
+}
 
-    pub fn draw_rect(&mut self, bbox: BBox, color: &Color) -> bool {
-        let left_bottom = CVec::new(bbox.start.x, bbox.end.y);
-        let right_top   = CVec::new(bbox.end.x, bbox.start.y);
+pub struct Circle {
+    center: CVec,
+    r: u32,
+    color: Color
+}
 
-        self.draw_line(BBox::new(bbox.start,  left_bottom), color);
-        self.draw_line(BBox::new(left_bottom, bbox.end),    color);
-        self.draw_line(BBox::new(right_top,   bbox.end),    color);
-        self.draw_line(BBox::new(bbox.start,  right_top),   color);
 
-        true
+impl Circle {
+    pub fn new(center: CVec, r: u32, color: Color) -> Self {
+        Self { center, r, color }
     }
+}
 
-    pub fn draw_filled_rect(&mut self, bbox: BBox, color: &Color) -> bool {
-        for x in bbox.iter_x() {
-            self.draw_vertical_line((x, bbox.start.y).into(), bbox.end.y, color);
-        }
-        
-        true
-    }
-
-    pub fn draw_circle(&mut self, center: CVec, r: u32, color: &Color) -> bool {
+impl Circle {
+    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+        let center = self.center;
+        let r = self.r;
+        let color = self.color;
         let mut x = 0;
         let mut y = r as i32;
 
-        let mut draw_i32 = |x, y, c| self.draw_pixel(x, y, c);
+        let mut draw_i32 = |x, y, c| canvas.draw_pixel(x, y, &c);
 
         // Calculate the initial decision 
         let mut decision = 3 - (2 * r as i32);
@@ -92,7 +147,5 @@ impl Framebuffer {
             }
         }
 
-
-        true
     }
 }

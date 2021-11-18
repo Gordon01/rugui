@@ -1,18 +1,19 @@
 use super::coordinates::bounding_box::*;
 use super::framebuffer::*;
+use super::geometry::{Line, Rect};
 
 impl Framebuffer {
-    pub fn progress_bar(&mut self, bbox: BBox, progress: u32, color: &Color) -> bool {
+    pub fn progress_bar(&mut self, bbox: BBox, progress: u32, color: Color) -> bool {
         if progress > 100 {
             return false;
         }
 
-        self.draw_rect(bbox, color);
+        Rect::new(bbox, color).draw(self);
         let bbox = bbox.transform_both(-1);
         let position = bbox.start.x + (bbox.width() as f32 * (progress as f32 / 100.0)) as i32;
         let (filled, empty) = bbox.split(Axis::X, position + 1);
-        self.draw_filled_rect(filled, color);
-        self.draw_filled_rect(empty, &Color::White);
+        Rect::new_filled(filled, color).draw(self);
+        Rect::new_filled(empty, Color::White).draw(self);
 
         true
     }
@@ -23,38 +24,41 @@ impl Framebuffer {
         position: i32,
         width: i32,
         orient: Orientation,
-        color: &Color,
+        color: Color,
     ) -> bool {
         if orient == Orientation::Vertical {
-            self.draw_filled_rect(bbox, &Color::White);
+            Rect::new_filled(bbox, Color::White).draw(self);
 
             let mid_x = bbox.width() / 2;
-            self.draw_vertical_line((mid_x as i32, bbox.start.y).into(), bbox.end.y, color);
+            Line::new_vertical(bbox, color);
+            let bbox = BBox::new((mid_x as i32, bbox.start.y).into(), bbox.end);
+            Line::new_vertical(bbox, color).draw(self);
             let position = bbox.start.y
                 + ((bbox.end.y - width - bbox.start.y) as f32 * (position as f32 / 100.0)) as i32;
 
-            self.draw_rect(
+            Rect::new(
                 BBox::new(
                     (bbox.start.x, position).into(),
                     (bbox.end.x, position + width).into(),
                 ),
                 color,
-            );
+            ).draw(self);
         }
 
         true
     }
 
-    pub fn table(&mut self, bbox: &BBox, rows: i32, columns: i32, color: &Color) -> bool {
+    pub fn table(&mut self, bbox: &BBox, rows: i32, columns: i32, color: Color) -> bool {
         for x in bbox.iter_x().step_by(bbox.width() / columns as usize) {
-            self.draw_vertical_line((x, bbox.start.y).into(), bbox.end.y, color);
+            let bbox = BBox::new((x, bbox.start.y).into(), bbox.end);
+            Line::new_vertical(bbox, color).draw(self);
         }
 
         for y in bbox.iter_y().step_by(bbox.height() / rows as usize) {
-            self.draw_line(
+            Line::new(
                 BBox::new((bbox.start.x, y).into(), (bbox.end.x, y).into()),
                 color,
-            );
+            ).draw(self);
         }
 
         true
