@@ -94,17 +94,28 @@ impl epi::App for DisplayEmulator {
                 ui.text_edit_singleline(label);
             });
 
-            framebuffer.draw_filled_rect(BBox::new((90, 0).into(), (159, 31).into()), &Color::White);
+            rugui::geometry::Rect::new_filled(BBox::new((90, 0).into(), (159, 31).into()), Color::White)
+                .draw(framebuffer);
             ui.add(egui::Slider::new(value, 1..=100).text("progress"));
-            framebuffer.progress_bar(BBox::new((15, 5).into(), (90, 15).into()), *value, &Color::Black);
+            framebuffer.progress_bar(BBox::new((15, 5).into(), (90, 15).into()), *value, Color::Black);
 
             ui.add(egui::Slider::new(scroll, 0..=16).text("scroll"));
             //framebuffer.scroller(&Coordinates::new((0, 0), (10, 32)), *scroll as i32, 3, Orientation::Vertical, &Color::Black);
-            framebuffer.draw_circle((120, 16).into(), *scroll, &Color::Black);
+            rugui::geometry::Circle::new((120, 16).into(), *scroll, Color::Black)
+                .draw(framebuffer);
 
 
             if ui.button("Increment").clicked() {
-                framebuffer.draw_pixel(*value as i32, *value as i32, &Color::Black);
+                use rugui::geometry::Line;
+                let mut cords = (*value as i32, *value as i32);
+                Line::new(BBox::new(cords.into(), cords.into()), Color::Black)
+                    .draw(framebuffer);
+
+                cords.1 += 2;
+                Line::new(BBox::new(cords.into(), cords.into()), Color::Black)
+                    .draw(framebuffer);
+
+                //framebuffer.draw_pixel(*value as i32, *value as i32, &Color::Black);
                 *value += 1;
             }
 
