@@ -11,7 +11,8 @@ pub struct DisplayEmulator {
     // Example stuff:
     label: String,
     framebuffer: Framebuffer,
-    scroll: u32,
+    radius: u32,
+    circle_thickness: u32,
 
     // this how you opt-out of serialization of a member
     #[cfg_attr(feature = "persistence", serde(skip))]
@@ -26,7 +27,9 @@ impl Default for DisplayEmulator {
             // Example stuff:
             label: "Hello World!".to_owned(),
             value: 0,
-            scroll: 0,
+            radius: 0,
+            circle_thickness: 1,
+
             display: EDisplay::default(),
             framebuffer: Framebuffer::new(160, 32, 8).unwrap()
         }
@@ -68,7 +71,7 @@ impl epi::App for DisplayEmulator {
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
-        let Self { label, value, scroll, framebuffer, display } = self;
+        let Self { label, value, radius, framebuffer, circle_thickness, display } = self;
 
         // Examples of how to create different panels and windows.
         // Pick whichever suits you.
@@ -99,9 +102,10 @@ impl epi::App for DisplayEmulator {
             ui.add(egui::Slider::new(value, 1..=100).text("progress"));
             framebuffer.progress_bar(BBox::new((15, 5).into(), (90, 15).into()), *value, Color::Black);
 
-            ui.add(egui::Slider::new(scroll, 0..=16).text("scroll"));
-            //framebuffer.scroller(&Coordinates::new((0, 0), (10, 32)), *scroll as i32, 3, Orientation::Vertical, &Color::Black);
-            rugui::geometry::Circle::new((120, 16).into(), *scroll, Color::Black)
+            ui.add(egui::Slider::new(radius, 0..=16).text("radius"));
+            ui.add(egui::Slider::new(circle_thickness, 1..=*radius).text("thickness"));
+            rugui::geometry::Circle::new((120, 16).into(), *radius, Color::Black)
+                .thickness(*circle_thickness)
                 .draw(framebuffer);
 
 
@@ -144,7 +148,7 @@ impl epi::App for DisplayEmulator {
             egui::Window::new("Window").show(ctx, |ui| {
                 ui.label("Windows can be moved by dragging them.");
                 ui.label("They are automatically sized based on contents.");
-                ui.label("You can turn on resizing and scrolling if you like.");
+                ui.label("You can turn on resizing and radiusing if you like.");
                 ui.label("You would normally chose either panels OR windows.");
             });
         }

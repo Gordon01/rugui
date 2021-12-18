@@ -98,13 +98,19 @@ impl Rect {
 pub struct Circle {
     center: Vec2,
     r: u32,
+    thickness: u32,
     color: Color
 }
 
 
 impl Circle {
     pub fn new(center: Vec2, r: u32, color: Color) -> Self {
-        Self { center, r, color }
+        Self { center, r, thickness: 1, color }
+    }
+
+    pub fn thickness(mut self, t: u32) -> Self {
+        self.thickness = t;
+        self
     }
 }
 
@@ -113,14 +119,23 @@ impl Circle {
 
         let r = self.r as i32;
         let (x, y) = self.center;
+        let t = self.thickness as i32;
 
+        // FIXME: On small radiuses optimizations (<= 4) this draws a square
         for dx in (-r)..r {
             for dy in (-r)..r {
-                if (dx * dx + dy * dy < r * r) && (dx * dx + dy * dy > (r - 1) * (r - 1)) {
+                if    (dx * dx + dy * dy < r * r) 
+                   && (dx * dx + dy * dy > (r - t) * (r - t)) {
                     canvas.draw_pixel(dx + x, dy + y, &self.color);
                 }
             }
         }
+
+        // FIXME: Dirty hack for extremum points
+        canvas.draw_pixel(x + r, y,     &self.color);
+        canvas.draw_pixel(x - r, y,     &self.color);
+        canvas.draw_pixel(x,     y + r, &self.color);
+        canvas.draw_pixel(x,     y - r, &self.color);
 
         // let center = self.center;
         // let r = self.r;
