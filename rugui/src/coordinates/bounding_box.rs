@@ -8,40 +8,40 @@ pub enum Axis {
 
 #[derive(Clone, Copy, Debug)]
 pub struct BBox {
-    pub start: CVec,
-    pub end: CVec,
+    pub start: Vec2,
+    pub end: Vec2,
 }
 
 impl BBox {
-    pub fn new(start: CVec, end: CVec) -> Self {
+    pub fn new(start: Vec2, end: Vec2) -> Self {
         Self { start, end }
     }
 
-    pub fn from_relative(start: CVec, delta: CVec) -> Self {
-        Self::new(start.into(), (start.x + delta.x, start.y + delta.y).into())
+    pub fn from_relative(start: Vec2, delta: Vec2) -> Self {
+        Self::new(start.into(), (start.0 + delta.0, start.1 + delta.1).into())
     }
 
-    /// Make bounding box bigger or smaller in one dimension. 
+    /// Make bounding box bigger or smaller in one dimension.
     /// Positive `delta` value makes bounding box smaller.
     pub fn transform(&self, axis: Axis, delta: i32) -> Self {
         match axis {
             Axis::X => Self::new(
-                (self.start.x - delta, self.start.y).into(),
-                (self.end.x + delta, self.end.y).into()
+                (self.start.0 - delta, self.start.1).into(),
+                (self.end.0 + delta, self.end.1).into()
             ),
             Axis::Y => Self::new(
-                (self.start.x, self.start.y - delta).into(),
-                (self.end.x, self.end.y + delta).into()
+                (self.start.0, self.start.1 - delta).into(),
+                (self.end.0, self.end.1 + delta).into()
             )
         }
     }
 
-    /// Make bounding box bigger or smaller in both dimension. 
+    /// Make bounding box bigger or smaller in both dimension.
     /// Positive `delta` value makes bounding box smaller.
     pub fn transform_both(&self, delta: i32) -> Self {
         Self::new(
-            (self.start.x - delta, self.start.y - delta).into(),
-            (self.end.x + delta, self.end.y + delta).into()
+            (self.start.0 - delta, self.start.1 - delta).into(),
+            (self.end.0 + delta, self.end.1 + delta).into()
         )
     }
 
@@ -49,24 +49,24 @@ impl BBox {
     pub fn split(&self, axis: Axis, at: i32) -> (Self, Self) {
         match axis {
             Axis::X => (
-                Self::new(self.start, (at - 1, self.end.y).into()),
-                Self::new((at, self.start.y).into(), self.end),
+                Self::new(self.start, (at - 1, self.end.1).into()),
+                Self::new((at, self.start.1).into(), self.end),
             ),
             Axis::Y => (
-                Self::new(self.start, (self.end.x, at - 1).into()),
-                Self::new((self.start.x, at).into(), self.end),
+                Self::new(self.start, (self.end.0, at - 1).into()),
+                Self::new((self.start.0, at).into(), self.end),
             )
         }
     }
 
     #[inline(always)]
     pub fn width(&self) -> usize {
-        (self.end.x - self.start.x) as usize
+        (self.end.0 - self.start.0) as usize
     }
 
     #[inline(always)]
     pub fn height(&self) -> usize {
-        (self.end.y - self.start.y) as usize
+        (self.end.1 - self.start.1) as usize
     }
 
     pub fn iter_x(&self) -> CoordinatesIterator {
@@ -89,8 +89,8 @@ impl BBox {
 }
 
 pub struct CoordinatesIterator {
-    start: CVec,
-    end: CVec,
+    start: Vec2,
+    end: Vec2,
     axis: Axis,
     index: i32,
 }
@@ -101,13 +101,13 @@ impl Iterator for CoordinatesIterator {
     fn next(&mut self) -> Option<Self::Item> {
         let elem;
         if self.axis == Axis::X {
-            elem = self.start.x + self.index;
-            if elem > self.end.x {
+            elem = self.start.0 + self.index;
+            if elem > self.end.0 {
                 return None;
             }
         } else {
-            elem = self.start.y + self.index;
-            if elem > self.end.y {
+            elem = self.start.1 + self.index;
+            if elem > self.end.1 {
                 return None;
             }
         }
