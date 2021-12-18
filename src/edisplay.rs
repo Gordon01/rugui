@@ -1,7 +1,7 @@
 use copypasta::{ClipboardContext, ClipboardProvider};
 use eframe::{egui, epi};
 use egui::*;
-use rugui::coordinates::cvec::CVec;
+use rugui::coordinates::cvec::{Vector2};
 use rugui::framebuffer::{Color, Framebuffer};
 
 /// A widget to render a screen emulator
@@ -19,14 +19,15 @@ pub struct EDisplay {
 
 impl EDisplay {
     pub fn new(framebuffer: &Framebuffer, scaling: usize, frame: &mut epi::Frame<'_>) -> Self {
-        let size =
-            CVec::new(framebuffer.get_width(), framebuffer.get_height()).scale(scaling as i32);
+        let req =
+            (framebuffer.get_width(), framebuffer.get_height()).scale(scaling as i32);
+        let size = (req.0 as usize, req.1 as usize);
 
         let pixels = framebuffer_to_pixels(framebuffer, scaling);
         let texture = frame
             .tex_allocator()
-            .alloc_srgba_premultiplied(size.clone().into(), &pixels);
-        let image = Image::new(texture, &size.as_slice());
+            .alloc_srgba_premultiplied(size, &pixels);
+        let image = Image::new(texture, emath::vec2(size.0 as f32,size.1 as f32));
 
         Self {
             image,
