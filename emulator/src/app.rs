@@ -8,15 +8,14 @@ use super::edisplay::{EDisplay};
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "persistence", serde(default))] // if we add new fields, give them default values when deserializing old state
 pub struct DisplayEmulator {
-    // Example stuff:
     label: String,
-    framebuffer: Framebuffer,
     radius: u32,
     circle_thickness: u32,
-
+    progress: u8,
+    
     // this how you opt-out of serialization of a member
-    #[cfg_attr(feature = "persistence", serde(skip))]
-    value: u32,
+    //#[cfg_attr(feature = "persistence", serde(skip))]
+    //framebuffer: Framebuffer<'a>,
     #[cfg_attr(feature = "persistence", serde(skip))]
     display: EDisplay
 }
@@ -26,17 +25,17 @@ impl Default for DisplayEmulator {
         Self {
             // Example stuff:
             label: "Hello World!".to_owned(),
-            value: 0,
-            radius: 0,
+            progress: 0,
+            radius: 5,
             circle_thickness: 1,
 
             display: EDisplay::default(),
-            framebuffer: Framebuffer::new(160, 32, 8).unwrap()
+            //framebuffer: Framebuffer::new(160, 32, &mut array).unwrap()
         }
     }
 }
 
-impl epi::App for DisplayEmulator {
+impl<'a> epi::App for DisplayEmulator {
     fn name(&self) -> &str {
         "eframe template"
     }
@@ -48,11 +47,6 @@ impl epi::App for DisplayEmulator {
         _frame: &mut epi::Frame<'_>,
         _storage: Option<&dyn epi::Storage>,
     ) {
-        //self.framebuffer.draw_line(&BBox::new((5, 5).into(), (40, 5).into()), &Color::Black);
-        //self.framebuffer.draw_line(&BBox::new((5, 10).into(), (5, 30).into()), &Color::Black);
-        //self.framebuffer.draw_line(&BBox::new((5, 5).into(), (80, 30).into()), &Color::Black);
-        //self.framebuffer.table(&BBox::new((50, 0).into(), (150, 30).into()), 3, 3, &Color::Black);
-
         // Load previous app state (if any).
         // Note that you must enable the `persistence` feature for this to work.
         #[cfg(feature = "persistence")]
@@ -71,7 +65,10 @@ impl epi::App for DisplayEmulator {
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
-        let Self { label, value, radius, framebuffer, circle_thickness, display } = self;
+        let Self { label, progress, radius, circle_thickness, display } = self;
+
+        let mut buffer = [0u8; 640];
+        let mut framebuffer = Framebuffer::new(160, 32, &mut buffer).unwrap();
 
         // Examples of how to create different panels and windows.
         // Pick whichever suits you.
@@ -98,29 +95,27 @@ impl epi::App for DisplayEmulator {
             });
 
             rugui::geometry::Rect::new_filled(BBox::new((90, 0).into(), (159, 31).into()), Color::White)
-                .draw(framebuffer);
-            ui.add(egui::Slider::new(value, 1..=100).text("progress"));
-            framebuffer.progress_bar(BBox::new((15, 5).into(), (90, 15).into()), *value, Color::Black);
+                .draw(&mut framebuffer);
+            ui.add(egui::Slider::new(progress, 1..=100).text("progress"));
+            rugui::widgets::ProgressBar::new(BBox::new((15, 5).into(), (90, 15).into()), *progress, Color::Black)
+                .draw(&mut framebuffer);
 
             ui.add(egui::Slider::new(radius, 0..=16).text("radius"));
             ui.add(egui::Slider::new(circle_thickness, 1..=*radius).text("thickness"));
             rugui::geometry::Circle::new((120, 16).into(), *radius, Color::Black)
                 .thickness(*circle_thickness)
-                .draw(framebuffer);
+                .draw(&mut framebuffer);
 
 
             if ui.button("Increment").clicked() {
                 use rugui::geometry::Line;
-                let mut cords = (*value as i32, *value as i32);
+                let mut cords = (*progress as i32, *progress as i32);
                 Line::new(BBox::new(cords.into(), cords.into()), Color::Black)
-                    .draw(framebuffer);
+                    .draw(&mut framebuffer);
 
                 cords.1 += 2;
                 Line::new(BBox::new(cords.into(), cords.into()), Color::Black)
-                    .draw(framebuffer);
-
-                //framebuffer.draw_pixel(*value as i32, *value as i32, &Color::Black);
-                *value += 1;
+                    .draw(&mut framebuffer);
             }
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {

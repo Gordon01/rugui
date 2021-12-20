@@ -18,7 +18,7 @@ pub struct EDisplay {
 }
 
 impl EDisplay {
-    pub fn new(framebuffer: &Framebuffer, scaling: usize, frame: &mut epi::Frame<'_>) -> Self {
+    pub fn new(framebuffer: &Framebuffer<'_>, scaling: usize, frame: &mut epi::Frame<'_>) -> Self {
         let req =
             (framebuffer.get_width(), framebuffer.get_height()).scale(scaling as i32);
         let size = (req.0 as usize, req.1 as usize);
@@ -93,7 +93,7 @@ impl Widget for EDisplay {
 }
 
 /// Convert `rugui::Framebuffer` to pixel array, which can be used by `egui`.
-fn framebuffer_to_pixels(framebuffer: &Framebuffer, scaling: usize) -> Vec<Color32> {
+fn framebuffer_to_pixels(framebuffer: &Framebuffer<'_>, scaling: usize) -> Vec<Color32> {
     let width  = framebuffer.get_width()  as usize * scaling;
     let height = framebuffer.get_height() as usize * scaling;
 
