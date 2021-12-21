@@ -67,7 +67,7 @@ impl Scroller {
 
             let mid_x = self.bbox.width() / 2;
             Line::new_vertical(self.bbox, self.color);
-            let bbox = BBox::new((mid_x as i32, self.bbox.start.1).into(), self.bbox.end);
+            let bbox = BBox::new((mid_x as i32, self.bbox.start.1), self.bbox.end);
             Line::new_vertical(bbox, self.color).draw(canvas);
             let position = bbox.start.1
                 + ((bbox.end.1 - self.width - bbox.start.1) as f32 * (position as f32 / 100.0))
@@ -75,8 +75,8 @@ impl Scroller {
 
             Rect::new(
                 BBox::new(
-                    (bbox.start.0, position).into(),
-                    (bbox.end.0, position + self.width).into(),
+                    (bbox.start.0, position),
+                    (bbox.end.0, position + self.width),
                 ),
                 self.color,
             )
@@ -102,13 +102,13 @@ impl Table {
         let color = self.color;
 
         for x in bbox.iter_x().step_by(bbox.width() / self.columns as usize) {
-            let bbox = BBox::new((x, bbox.start.1).into(), bbox.end);
+            let bbox = BBox::new((x, bbox.start.1), bbox.end);
             Line::new_vertical(bbox, color).draw(canvas);
         }
 
         for y in bbox.iter_y().step_by(bbox.height() / self.rows as usize) {
             Line::new(
-                BBox::new((bbox.start.0, y).into(), (bbox.end.0, y).into()),
+                BBox::new((bbox.start.0, y), (bbox.end.0, y)),
                 color,
             )
             .draw(canvas);

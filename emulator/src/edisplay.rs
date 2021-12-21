@@ -1,7 +1,7 @@
 use copypasta::{ClipboardContext, ClipboardProvider};
 use eframe::{egui, epi};
 use egui::*;
-use rugui::coordinates::cvec::{Vector2};
+use rugui::coordinates::cvec::Vector2;
 use rugui::framebuffer::{Color, Framebuffer};
 
 /// A widget to render a screen emulator
@@ -19,15 +19,14 @@ pub struct EDisplay {
 
 impl EDisplay {
     pub fn new(framebuffer: &Framebuffer<'_>, scaling: usize, frame: &mut epi::Frame<'_>) -> Self {
-        let req =
-            (framebuffer.get_width(), framebuffer.get_height()).scale(scaling as i32);
+        let req = (framebuffer.get_width(), framebuffer.get_height()).scale(scaling as i32);
         let size = (req.0 as usize, req.1 as usize);
 
         let pixels = framebuffer_to_pixels(framebuffer, scaling);
         let texture = frame
             .tex_allocator()
             .alloc_srgba_premultiplied(size, &pixels);
-        let image = Image::new(texture, emath::vec2(size.0 as f32,size.1 as f32));
+        let image = Image::new(texture, emath::vec2(size.0 as f32, size.1 as f32));
 
         Self {
             image,
@@ -94,7 +93,7 @@ impl Widget for EDisplay {
 
 /// Convert `rugui::Framebuffer` to pixel array, which can be used by `egui`.
 fn framebuffer_to_pixels(framebuffer: &Framebuffer<'_>, scaling: usize) -> Vec<Color32> {
-    let width  = framebuffer.get_width()  as usize * scaling;
+    let width = framebuffer.get_width() as usize * scaling;
     let height = framebuffer.get_height() as usize * scaling;
 
     let mut pixels = vec![Color32::from_gray(200); width * height];
@@ -104,7 +103,7 @@ fn framebuffer_to_pixels(framebuffer: &Framebuffer<'_>, scaling: usize) -> Vec<C
             let pixel = framebuffer.get_pixel(x, y);
             let color = match pixel {
                 Color::Black => Color32::from_gray(255),
-                _            => Color32::from_gray(0),
+                _ => Color32::from_gray(0),
             };
             let pos = (y as usize * scaling * width) + (x as usize * scaling);
 

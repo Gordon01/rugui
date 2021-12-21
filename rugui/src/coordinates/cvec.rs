@@ -8,7 +8,6 @@ pub trait Vector2 {
 }
 
 impl Vector2 for Vec2 {
-
     /// Scale a vector up or down. Positive `scaling` value means scaling up.
     fn scale(&self, scalar: i32) -> Self {
         let (x, y) = self;
@@ -19,5 +18,4 @@ impl Vector2 for Vec2 {
         let (x, y) = self;
         (x / scalar, y / scalar)
     }
-
 }

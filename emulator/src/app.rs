@@ -1,8 +1,8 @@
 use eframe::{egui, epi};
-use rugui::framebuffer::{Framebuffer, Color};
 use rugui::coordinates::bounding_box::BBox;
+use rugui::framebuffer::{Color, Framebuffer};
 
-use super::edisplay::{EDisplay};
+use super::edisplay::EDisplay;
 
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[cfg_attr(feature = "persistence", derive(serde::Deserialize, serde::Serialize))]
@@ -12,25 +12,21 @@ pub struct DisplayEmulator {
     radius: u32,
     circle_thickness: u32,
     progress: u8,
-    
+
     // this how you opt-out of serialization of a member
-    //#[cfg_attr(feature = "persistence", serde(skip))]
-    //framebuffer: Framebuffer<'a>,
     #[cfg_attr(feature = "persistence", serde(skip))]
-    display: EDisplay
+    display: EDisplay,
 }
 
 impl Default for DisplayEmulator {
     fn default() -> Self {
         Self {
-            // Example stuff:
             label: "Hello World!".to_owned(),
             progress: 0,
             radius: 5,
             circle_thickness: 1,
 
             display: EDisplay::default(),
-            //framebuffer: Framebuffer::new(160, 32, &mut array).unwrap()
         }
     }
 }
@@ -65,7 +61,13 @@ impl<'a> epi::App for DisplayEmulator {
     /// Called each time the UI needs repainting, which may be many times per second.
     /// Put your widgets into a `SidePanel`, `TopPanel`, `CentralPanel`, `Window` or `Area`.
     fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
-        let Self { label, progress, radius, circle_thickness, display } = self;
+        let Self {
+            label,
+            progress,
+            radius,
+            circle_thickness,
+            display,
+        } = self;
 
         let mut buffer = [0u8; 640];
         let mut framebuffer = Framebuffer::new(160, 32, &mut buffer).unwrap();
@@ -94,28 +96,25 @@ impl<'a> epi::App for DisplayEmulator {
                 ui.text_edit_singleline(label);
             });
 
-            rugui::geometry::Rect::new_filled(BBox::new((90, 0).into(), (159, 31).into()), Color::White)
+            rugui::geometry::Rect::new_filled(BBox::new((90, 0), (159, 31)), Color::White)
                 .draw(&mut framebuffer);
             ui.add(egui::Slider::new(progress, 1..=100).text("progress"));
-            rugui::widgets::ProgressBar::new(BBox::new((15, 5).into(), (90, 15).into()), *progress, Color::Black)
+            rugui::widgets::ProgressBar::new(BBox::new((15, 5), (90, 15)), *progress, Color::Black)
                 .draw(&mut framebuffer);
 
             ui.add(egui::Slider::new(radius, 0..=16).text("radius"));
             ui.add(egui::Slider::new(circle_thickness, 1..=*radius).text("thickness"));
-            rugui::geometry::Circle::new((120, 16).into(), *radius, Color::Black)
+            rugui::geometry::Circle::new((120, 16), *radius, Color::Black)
                 .thickness(*circle_thickness)
                 .draw(&mut framebuffer);
-
 
             if ui.button("Increment").clicked() {
                 use rugui::geometry::Line;
                 let mut cords = (*progress as i32, *progress as i32);
-                Line::new(BBox::new(cords.into(), cords.into()), Color::Black)
-                    .draw(&mut framebuffer);
+                Line::new(BBox::new(cords, cords), Color::Black).draw(&mut framebuffer);
 
                 cords.1 += 2;
-                Line::new(BBox::new(cords.into(), cords.into()), Color::Black)
-                    .draw(&mut framebuffer);
+                Line::new(BBox::new(cords, cords), Color::Black).draw(&mut framebuffer);
             }
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
@@ -134,7 +133,7 @@ impl<'a> epi::App for DisplayEmulator {
 
             display.free_texture(frame);
             *display = EDisplay::new(&framebuffer, 4, frame);
-            ui.add(display.clone());
+            ui.add(*display);
 
             ui.label("Right-click on a display to copy coordinates to clip buffer");
         });

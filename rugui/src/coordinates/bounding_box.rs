@@ -18,7 +18,7 @@ impl BBox {
     }
 
     pub fn from_relative(start: Vec2, delta: Vec2) -> Self {
-        Self::new(start.into(), (start.0 + delta.0, start.1 + delta.1).into())
+        Self::new(start, (start.0 + delta.0, start.1 + delta.1))
     }
 
     /// Make bounding box bigger or smaller in one dimension.
@@ -26,13 +26,13 @@ impl BBox {
     pub fn transform(&self, axis: Axis, delta: i32) -> Self {
         match axis {
             Axis::X => Self::new(
-                (self.start.0 - delta, self.start.1).into(),
-                (self.end.0 + delta, self.end.1).into()
+                (self.start.0 - delta, self.start.1),
+                (self.end.0 + delta, self.end.1),
             ),
             Axis::Y => Self::new(
-                (self.start.0, self.start.1 - delta).into(),
-                (self.end.0, self.end.1 + delta).into()
-            )
+                (self.start.0, self.start.1 - delta),
+                (self.end.0, self.end.1 + delta),
+            ),
         }
     }
 
@@ -40,8 +40,8 @@ impl BBox {
     /// Positive `delta` value makes bounding box smaller.
     pub fn transform_both(&self, delta: i32) -> Self {
         Self::new(
-            (self.start.0 - delta, self.start.1 - delta).into(),
-            (self.end.0 + delta, self.end.1 + delta).into()
+            (self.start.0 - delta, self.start.1 - delta),
+            (self.end.0 + delta, self.end.1 + delta),
         )
     }
 
@@ -49,13 +49,13 @@ impl BBox {
     pub fn split(&self, axis: Axis, at: i32) -> (Self, Self) {
         match axis {
             Axis::X => (
-                Self::new(self.start, (at - 1, self.end.1).into()),
-                Self::new((at, self.start.1).into(), self.end),
+                Self::new(self.start, (at - 1, self.end.1)),
+                Self::new((at, self.start.1), self.end),
             ),
             Axis::Y => (
-                Self::new(self.start, (self.end.0, at - 1).into()),
-                Self::new((self.start.0, at).into(), self.end),
-            )
+                Self::new(self.start, (self.end.0, at - 1)),
+                Self::new((self.start.0, at), self.end),
+            ),
         }
     }
 

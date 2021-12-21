@@ -56,9 +56,9 @@ impl Line {
             canvas.draw_pixel(x, y, &color);
             if delta > 0 {
                 y += 1;
-                delta = delta - 2 * bbox.width() as i32;
+                delta -= 2 * bbox.width() as i32;
             }
-            delta = delta + 2 * bbox.height() as i32;
+            delta += 2 * bbox.height() as i32;
         }
     }
 }
@@ -91,7 +91,7 @@ impl Rect {
     pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
         if self.filled {
             for x in self.bbox.iter_x() {
-                let bbox = BBox::new((x, self.bbox.start.1).into(), self.bbox.end);
+                let bbox = BBox::new((x, self.bbox.start.1), self.bbox.end);
                 Line::new_vertical(bbox, self.color).draw(canvas);
             }
 

@@ -62,9 +62,9 @@ impl<'a> Framebuffer<'a> {
         let pixel = y % self.row_height;
 
         if byte & (1 << pixel) != 0 {
-            return Color::Black;
+            Color::Black
         } else {
-            return Color::White;
+            Color::White
         }
     }
 
