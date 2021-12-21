@@ -1,12 +1,26 @@
 #[cfg(test)]
 mod geometry_tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
-    use super::super::coordinates::bounding_box::*;
+    use crate::coordinates::bounding_box::*;
+    use crate::framebuffer::Color;
+    use crate::geometry::Circle;
 
     #[test]
     fn test_iter() {
-        let cords = BBox::new((5, 10).into(), (15, 15).into());
+        let cords = BBox::new((5, 10), (15, 15));
         assert!(cords.iter_x().count() == 11);
         assert!(cords.iter_y().count() == 6);
+    }
+
+    #[test]
+    fn test_circle_from_bbox() {
+        let cords = BBox::new((0, 10), (10, 20));
+        let circle_orig = Circle::new((5, 15), 5, Color::Black);
+        let circle = Circle::from_bbox(cords, Color::Black);
+        assert_eq!(circle_orig, circle);
+
+        let cords = BBox::new((0, 10), (10, 16));
+        let circle_orig = Circle::new((3, 13), 3, Color::Black);
+        let circle = Circle::from_bbox(cords, Color::Black);
+        assert_eq!(circle_orig, circle);
     }
 }

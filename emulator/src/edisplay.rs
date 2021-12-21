@@ -7,7 +7,7 @@ use rugui::framebuffer::{Color, Framebuffer};
 /// A widget to render a screen emulator
 ///
 /// ```
-/// ui.add(EDisplay::new(&framebuffer, 2, frame);
+/// ui.add(EDisplay::new(&framebuffer, 2, frame));
 /// ```
 #[derive(Clone, Copy)]
 pub struct EDisplay {

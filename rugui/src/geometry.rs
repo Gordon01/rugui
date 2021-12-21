@@ -10,6 +10,20 @@ pub struct Line {
     vertical: bool,
 }
 
+pub struct Rect {
+    bbox: BBox,
+    color: Color,
+    filled: bool,
+}
+
+#[derive(Eq, PartialEq, Debug)]
+pub struct Circle {
+    center: Vec2,
+    r: u32,
+    thickness: u32,
+    color: Color,
+}
+
 impl Line {
     pub fn new(bbox: BBox, color: Color) -> Self {
         Self {
@@ -63,12 +77,6 @@ impl Line {
     }
 }
 
-pub struct Rect {
-    bbox: BBox,
-    color: Color,
-    filled: bool,
-}
-
 impl Rect {
     pub fn new(bbox: BBox, color: Color) -> Self {
         Self {
@@ -110,18 +118,26 @@ impl Rect {
     }
 }
 
-pub struct Circle {
-    center: Vec2,
-    r: u32,
-    thickness: u32,
-    color: Color,
-}
-
 impl Circle {
     pub fn new(center: Vec2, r: u32, color: Color) -> Self {
         Self {
             center,
             r,
+            thickness: 1,
+            color,
+        }
+    }
+
+    /// Creates a circle inscribed in bounding box. If the BBox is not a perfect sqare,
+    /// the smallest side would be selected as a base for a square to inscribe.
+    pub fn from_bbox(bbox: BBox, color: Color) -> Self {
+        let r = (bbox.width().min(bbox.height()) / 2) as i32;
+        let x = bbox.start.0 + r;
+        let y = bbox.start.1 + r;
+
+        Self {
+            center: (x, y),
+            r: r as u32,
             thickness: 1,
             color,
         }

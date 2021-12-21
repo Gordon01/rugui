@@ -107,11 +107,7 @@ impl Table {
         }
 
         for y in bbox.iter_y().step_by(bbox.height() / self.rows as usize) {
-            Line::new(
-                BBox::new((bbox.start.0, y), (bbox.end.0, y)),
-                color,
-            )
-            .draw(canvas);
+            Line::new(BBox::new((bbox.start.0, y), (bbox.end.0, y)), color).draw(canvas);
         }
     }
 }
