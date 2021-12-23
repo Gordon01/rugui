@@ -43,17 +43,21 @@ impl<'a> PixelDraw for Framebuffer<'a> {
 }
 
 impl<'a> Framebuffer<'a> {
+    /// Construct a new display. Returns `None` if provided framebuffer is too small.
     pub fn new(width: i32, height: i32, frame: &'a mut [u8]) -> Option<Self> {
+        // TODO: Currently hardcoded and I really doubt that we ever encounter displays with 8bit+ data buses
+        let row_height = 8;
+        // TODO: This only works for monochrome displays
+        if (width * height / row_height) as usize > frame.len() {
+            return None;
+        }
+
         Some(Framebuffer {
             width,
             height,
-            row_height: 8,
+            row_height,
             frame,
         })
-    }
-
-    pub fn get_byte(self, num: usize) -> u8 {
-        self.frame[num]
     }
 
     pub fn get_pixel(&self, x: i32, y: i32) -> Color {
