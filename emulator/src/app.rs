@@ -40,7 +40,7 @@ impl<'a> epi::App for DisplayEmulator {
             display,
         } = self;
 
-        let size = resolution.0 * resolution.1 / 8;
+        let size = resolution.0 * (resolution.1 as f32 / 8.0).ceil() as i32;
         let mut buffer = vec![0; size as usize];
         let mut framebuffer = Framebuffer::new(resolution.0, resolution.1, &mut buffer).unwrap();
 
@@ -87,7 +87,7 @@ impl<'a> epi::App for DisplayEmulator {
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("LCD emulation control");
 
-            ui.add(egui::Slider::new(&mut resolution.0, 0..=640).text("width"));
+            ui.add(egui::Slider::new(&mut resolution.0, 1..=640).text("width"));
             ui.add(egui::Slider::new(&mut resolution.1, 1..=480).text("height"));
 
             display.free_texture(frame);
