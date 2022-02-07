@@ -12,7 +12,7 @@ What is implemented:
 * Vertical scroll bar
 
 ## Emulator
-We've also implemented a beautiful emulator based on [egui](https://github.com/emilk/eguihttps://github.com/emilk/egui).
+We've also implemented a beautiful emulator based on [egui](https://github.com/emilk/egui).
 
 Currently, it's emulating a black-and-white 160 x 32 screen.
 
