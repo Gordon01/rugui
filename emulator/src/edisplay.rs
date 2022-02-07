@@ -1,5 +1,5 @@
 use copypasta::{ClipboardContext, ClipboardProvider};
-use eframe::{egui, epi};
+use eframe::egui;
 use egui::*;
 use rugui::coordinates::cvec::Vector2;
 use rugui::framebuffer::{Color, Framebuffer};
@@ -9,66 +9,34 @@ use rugui::framebuffer::{Color, Framebuffer};
 /// ```
 /// ui.add(EDisplay::new(&framebuffer, 2, frame));
 /// ```
-#[derive(Clone, Copy)]
+#[derive(Clone)]
 pub struct EDisplay {
     image: Image,
     sense: Sense,
     scaling: usize,
-    texture_id: Option<TextureId>,
+    texture: TextureHandle,
 }
 
 impl EDisplay {
-    pub fn new(framebuffer: &Framebuffer<'_>, scaling: usize, frame: &mut epi::Frame<'_>) -> Self {
+    pub fn new(framebuffer: &Framebuffer<'_>, scaling: usize, ctx: &egui::Context) -> Self {
         let req = (framebuffer.get_width(), framebuffer.get_height()).scale(scaling as i32);
         let size = (req.0 as usize, req.1 as usize);
 
         let pixels = framebuffer_to_pixels(framebuffer, scaling);
-        let texture = frame
-            .tex_allocator()
-            .alloc_srgba_premultiplied(size, &pixels);
-        let image = Image::new(texture, emath::vec2(size.0 as f32, size.1 as f32));
+        let texture = ctx.load_texture("framebuffer", pixels);
+        let image = Image::new(texture.id(), emath::vec2(size.0 as f32, size.1 as f32));
 
         Self {
             image,
             sense: Sense::click(),
             scaling,
-            texture_id: Some(texture),
-        }
-    }
-
-    /// Create a dummy widget
-    pub fn default() -> Self {
-        Self {
-            image: Image::new(TextureId::default(), [0.0, 0.0]),
-            sense: Sense::click(),
-            scaling: 1,
-            texture_id: None,
-        }
-    }
-
-    /// Free texture memory used by widget. Since egui can't change a texture after creation,
-    /// we create new one on each redraw.
-    ///
-    /// ```
-    /// display.free_texture(frame);
-    /// *display = EDisplay::new(&framebuffer, 2, frame);
-    /// ui.add(display.clone());
-    ///
-    pub fn free_texture(&mut self, frame: &mut epi::Frame<'_>) {
-        if let Some(texture) = self.texture_id {
-            frame.tex_allocator().free(texture);
-            self.texture_id = None;
+            texture,
         }
     }
 }
 
 impl Widget for EDisplay {
     fn ui(self, ui: &mut Ui) -> Response {
-        if self.texture_id.is_none() {
-            // Do not draw default() widget
-            return ui.allocate_response(self.image.size(), self.sense);
-        }
-
         let (rect, response) = ui.allocate_exact_size(self.image.size(), self.sense);
         self.image.paint_at(ui, rect);
 
@@ -91,8 +59,8 @@ impl Widget for EDisplay {
     }
 }
 
-/// Convert `rugui::Framebuffer` to pixel array, which can be used by `egui`.
-fn framebuffer_to_pixels(framebuffer: &Framebuffer<'_>, scaling: usize) -> Vec<Color32> {
+/// Convert `rugui::Framebuffer` to `ColorImage`, which can be used by `egui`.
+fn framebuffer_to_pixels(framebuffer: &Framebuffer<'_>, scaling: usize) -> ColorImage {
     let width = framebuffer.get_width() as usize * scaling;
     let height = framebuffer.get_height() as usize * scaling;
 
@@ -116,5 +84,8 @@ fn framebuffer_to_pixels(framebuffer: &Framebuffer<'_>, scaling: usize) -> Vec<C
         }
     }
 
-    pixels
+    ColorImage {
+        size: [width, height],
+        pixels,
+    }
 }

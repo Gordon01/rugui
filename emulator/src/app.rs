@@ -9,7 +9,6 @@ pub struct DisplayEmulator {
     circle_thickness: u32,
     progress: u8,
     resolution: (i32, i32),
-    display: EDisplay,
 }
 
 impl Default for DisplayEmulator {
@@ -20,7 +19,6 @@ impl Default for DisplayEmulator {
             circle_thickness: 1,
             progress: 0,
             resolution: (160, 32),
-            display: EDisplay::default(),
         }
     }
 }
@@ -30,14 +28,13 @@ impl<'a> epi::App for DisplayEmulator {
         "rugui display emulator"
     }
 
-    fn update(&mut self, ctx: &egui::CtxRef, frame: &mut epi::Frame<'_>) {
+    fn update(&mut self, ctx: &egui::Context, _frame: &epi::Frame) {
         let Self {
             label,
             radius,
             circle_thickness,
             progress,
             resolution,
-            display,
         } = self;
 
         let size = resolution.0 * (resolution.1 as f32 / 8.0).ceil() as i32;
@@ -89,10 +86,7 @@ impl<'a> epi::App for DisplayEmulator {
 
             ui.add(egui::Slider::new(&mut resolution.0, 1..=640).text("width"));
             ui.add(egui::Slider::new(&mut resolution.1, 1..=480).text("height"));
-
-            display.free_texture(frame);
-            *display = EDisplay::new(&framebuffer, 4, frame);
-            ui.add(*display);
+            ui.add(EDisplay::new(&framebuffer, 4, ctx));
 
             ui.label("Right-click on a display to copy coordinates to clip buffer");
         });
