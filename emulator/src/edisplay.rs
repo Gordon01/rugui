@@ -14,7 +14,6 @@ pub struct EDisplay {
     image: Image,
     sense: Sense,
     scaling: usize,
-    texture: TextureHandle,
 }
 
 impl EDisplay {
@@ -30,7 +29,6 @@ impl EDisplay {
             image,
             sense: Sense::click(),
             scaling,
-            texture,
         }
     }
 }
