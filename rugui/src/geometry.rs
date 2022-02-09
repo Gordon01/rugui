@@ -1,5 +1,4 @@
 use crate::coordinates::cvec::Vec2;
-
 use super::coordinates::bounding_box::*;
 use super::framebuffer::PixelDraw;
 use super::framebuffer::*;
@@ -20,6 +19,14 @@ pub struct Rect {
 pub struct Circle {
     center: Vec2,
     r: u32,
+    thickness: u32,
+    color: Color,
+}
+
+pub struct Ellipse {
+    center: Vec2,
+    height: u32,
+    width: u32,
     thickness: u32,
     color: Color,
 }
@@ -187,4 +194,78 @@ impl Circle {
             }
         }
     }
+}
+
+impl Ellipse {
+    pub fn new(width: u32, height: u32, center: Vec2, color: Color) -> Self {
+        Self {
+            center,
+            height,
+            width,
+            thickness: 1,
+            color,
+        }
+    }
+
+    pub fn filled(mut self, filled: bool) -> Self {
+        if filled {
+            self.thickness = self.max_thickness();
+        } else {
+            self.thickness = 1;
+        }
+
+        self
+    }
+
+    pub fn max_thickness(&self) -> u32 {
+        if self.height >= self.width {
+            self.width
+        }
+        else {
+            self.height
+        }
+    }
+
+    pub fn thickness(mut self, t: u32) -> Self {
+        self.thickness = t;
+        if t <= self.height && t <= self.height {
+            return self;
+        }
+        self.thickness = self.max_thickness();
+
+        self
+    }
+
+}
+
+impl Ellipse {
+    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+        let t = self.thickness;
+        let height_int = self.height as i32;
+        let width_int = self.width as i32;
+        let height_sqr = (height_int * height_int);
+        let width_sqr = (width_int * width_int);
+        let internal_width_sqr = (width_int - t as i32) * (width_int - t as i32);
+        let internal_height_sqr = (height_int - t as i32) * (height_int - t as i32);
+
+        let (x, y) = self.center;
+
+        for dx in -width_int..=width_int {
+            for dy in -height_int..=height_int {
+                if t == self.max_thickness() {
+                    if dx * dx * height_sqr + dy * dy * width_sqr < height_sqr * width_sqr + 1 {
+                        canvas.draw_pixel((dx + x) as i32, (dy + y) as i32, &self.color);
+                    }
+                } else {
+                    if dx * dx * height_sqr + dy * dy * width_sqr < height_sqr * width_sqr + 1
+                        && dx * dx * internal_height_sqr + dy * dy * internal_width_sqr > internal_width_sqr * internal_height_sqr {
+                        canvas.draw_pixel(x + dx, y + dy, &self.color);
+                    }
+                }              
+                
+            }
+        }
+
+    }
+
 }
