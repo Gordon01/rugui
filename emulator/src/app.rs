@@ -2,6 +2,7 @@ use super::edisplay::EDisplay;
 use eframe::{egui, epi};
 use rugui::coordinates::bounding_box::BBox;
 use rugui::framebuffer::{Color, Framebuffer};
+use rugui::geometry::Drawable;
 
 pub struct DisplayEmulator {
     label: String,
@@ -78,6 +79,7 @@ impl<'a> epi::App for DisplayEmulator {
             rugui::geometry::Ellipse::new(*ellipse_width, *ellipse_height, (25, 25), Color::Black)
                 .thickness(*ellipse_thickness)
                 .draw(&mut framebuffer);
+
 
             if ui.button("Increment").clicked() {
                 use rugui::geometry::Line;

@@ -3,6 +3,10 @@ use super::coordinates::bounding_box::*;
 use super::framebuffer::PixelDraw;
 use super::framebuffer::*;
 
+pub trait Drawable {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C);
+}
+
 pub struct Line {
     bbox: BBox,
     color: Color,
@@ -49,8 +53,8 @@ impl Line {
     }
 }
 
-impl Line {
-    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+impl Drawable for Line {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
         if self.vertical {
             for y in self.bbox.start.1..=self.bbox.end.1 {
                 canvas.draw_pixel(self.bbox.start.0, y, &self.color);
@@ -102,8 +106,8 @@ impl Rect {
     }
 }
 
-impl Rect {
-    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+impl Drawable for Rect {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
         if self.filled {
             for x in self.bbox.iter_x() {
                 let bbox = BBox::new((x, self.bbox.start.1), self.bbox.end);
@@ -172,8 +176,8 @@ impl Circle {
     }
 }
 
-impl Circle {
-    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+impl Drawable for Circle {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
         let r = self.r as i32;
         let (x, y) = self.center;
         let t = self.thickness as i32;
@@ -204,6 +208,21 @@ impl Ellipse {
             width,
             thickness: 1,
             color,
+        }
+    }
+
+    pub fn from_bbox(bbox: BBox, color: Color) -> Self {
+        let width = (bbox.width() / 2) as u32;
+        let height = (bbox.height() / 2) as u32;
+        let x = bbox.start.0 + width as i32;
+        let y = bbox.start.1 + height as i32;
+
+        Self {
+            center: (x, y),
+            height,
+            width,
+            thickness: 1,
+            color
         }
     }
 
@@ -238,13 +257,13 @@ impl Ellipse {
 
 }
 
-impl Ellipse {
-    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+impl Drawable for Ellipse {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
         let t = self.thickness;
         let height_int = self.height as i32;
         let width_int = self.width as i32;
-        let height_sqr = (height_int * height_int);
-        let width_sqr = (width_int * width_int);
+        let height_sqr = height_int * height_int;
+        let width_sqr = width_int * width_int;
         let internal_width_sqr = (width_int - t as i32) * (width_int - t as i32);
         let internal_height_sqr = (height_int - t as i32) * (height_int - t as i32);
 
@@ -253,12 +272,12 @@ impl Ellipse {
         for dx in -width_int..=width_int {
             for dy in -height_int..=height_int {
                 if t == self.max_thickness() {
-                    if dx * dx * height_sqr + dy * dy * width_sqr < height_sqr * width_sqr + 1 {
-                        canvas.draw_pixel((dx + x) as i32, (dy + y) as i32, &self.color);
+                    if dx * dx * height_sqr + dy * dy * width_sqr < height_sqr * width_sqr {
+                        canvas.draw_pixel(x + dx as i32, y + dy as i32, &self.color);
                     }
                 } else {
-                    if dx * dx * height_sqr + dy * dy * width_sqr < height_sqr * width_sqr + 1
-                        && dx * dx * internal_height_sqr + dy * dy * internal_width_sqr > internal_width_sqr * internal_height_sqr {
+                    if dx * dx * height_sqr + dy * dy * width_sqr < height_sqr * width_sqr
+                        && dx * dx * internal_height_sqr + dy * dy * internal_width_sqr > internal_width_sqr * internal_height_sqr - 1 {
                         canvas.draw_pixel(x + dx, y + dy, &self.color);
                     }
                 }              

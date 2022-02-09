@@ -2,7 +2,7 @@
 mod geometry_tests {
     use crate::coordinates::bounding_box::*;
     use crate::framebuffer::Color;
-    use crate::geometry::Circle;
+    use crate::geometry::{Circle, Ellipse};
 
     #[test]
     fn test_iter() {
@@ -22,5 +22,15 @@ mod geometry_tests {
         let circle_orig = Circle::new((3, 13), 3, Color::Black);
         let circle = Circle::from_bbox(cords, Color::Black);
         assert_eq!(circle_orig, circle);
+    }
+
+    #[test]
+    fn test_ellipse_max_thickness() {
+        let ellipse = Ellipse::new(10, 20, (10, 10), Color::Black);
+
+        assert_eq!(ellipse.max_thickness(), 10);
+        
+        let ellipse = Ellipse::new(123, 100, (10, 10), Color::Black);
+        assert_eq!(ellipse.max_thickness(), 100);
     }
 }
