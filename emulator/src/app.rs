@@ -1,8 +1,13 @@
 use super::edisplay::EDisplay;
-use eframe::{egui, epi};
+use eframe::{
+    egui::{self},
+    epi,
+};
 use rugui::coordinates::bounding_box::BBox;
 use rugui::framebuffer::{Color, Framebuffer};
-use rugui::geometry::Drawable;
+use rugui::geometry::{
+    circle::Circle, ellipse::Ellipse, line::ConstructMethod, line::Line, rect::Rect, Drawable,
+};
 
 pub struct DisplayEmulator {
     label: String,
@@ -59,15 +64,18 @@ impl<'a> epi::App for DisplayEmulator {
                 ui.text_edit_singleline(label);
             });
 
-            rugui::geometry::Rect::new_filled(BBox::new((90, 0), (159, 31)), Color::White)
-                .draw(&mut framebuffer);
+            Rect::new_filled(BBox::new((90, 0), (159, 31)), Color::White).draw(&mut framebuffer);
             ui.add(egui::Slider::new(progress, 1..=100).text("progress"));
-            rugui::widgets::ProgressBar::new(BBox::new((15, 5), (90, 15)), *progress, Color::Black)
-                .draw(&mut framebuffer);
+            rugui::widgets::progress_bar::ProgressBar::new(
+                BBox::new((15, 5), (90, 15)),
+                *progress,
+                Color::Black,
+            )
+            .draw(&mut framebuffer);
 
             ui.add(egui::Slider::new(radius, 0..=16).text("radius"));
             ui.add(egui::Slider::new(circle_thickness, 1..=*radius).text("thickness"));
-            rugui::geometry::Circle::new((120, 16), *radius, Color::Black)
+            Circle::new((120, 16), *radius, Color::Black)
                 .thickness(*circle_thickness)
                 .draw(&mut framebuffer);
 
@@ -78,17 +86,36 @@ impl<'a> epi::App for DisplayEmulator {
             ui.add(
                 egui::Slider::new(ellipse_thickness, 1..=max_thickness).text("ellipse thickness"),
             );
-            rugui::geometry::Ellipse::new(*ellipse_width, *ellipse_height, (25, 25), Color::Black)
+            Ellipse::new(*ellipse_width, *ellipse_height, (25, 25), Color::Black)
                 .thickness(*ellipse_thickness)
                 .draw(&mut framebuffer);
 
+            let method = ConstructMethod::ByPoints {
+                p1: (50, 18),
+                p2: (70, 26),
+            };
+            Line::new(method, Color::Black).draw(&mut framebuffer);
+
             if ui.button("Increment").clicked() {
-                use rugui::geometry::Line;
                 let mut cords = (*progress as i32, *progress as i32);
-                Line::new(BBox::new(cords, cords), Color::Black).draw(&mut framebuffer);
+                Line::new(
+                    ConstructMethod::FromBbox {
+                        bbox: BBox::new(cords, cords),
+                        vertical: false,
+                    },
+                    Color::Black,
+                )
+                .draw(&mut framebuffer);
 
                 cords.1 += 2;
-                Line::new(BBox::new(cords, cords), Color::Black).draw(&mut framebuffer);
+                Line::new(
+                    ConstructMethod::FromBbox {
+                        bbox: BBox::new(cords, cords),
+                        vertical: false,
+                    },
+                    Color::Black,
+                )
+                .draw(&mut framebuffer);
             }
 
             ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {

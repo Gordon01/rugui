@@ -2,7 +2,7 @@
 mod geometry_tests {
     use crate::coordinates::bounding_box::*;
     use crate::framebuffer::Color;
-    use crate::geometry::{Circle, Ellipse};
+    use crate::geometry::{circle::Circle, ellipse::Ellipse};
 
     #[test]
     fn test_iter() {
