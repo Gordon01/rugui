@@ -2,7 +2,7 @@ use super::edisplay::EDisplay;
 use eframe::{egui, epi};
 use rugui::coordinates::bounding_box::BBox;
 use rugui::framebuffer::{Color, Framebuffer};
-use rugui::geometry::Drawable;
+use rugui::geometry::{circle::Circle, ellipse::Ellipse, rect::Rect, Drawable};
 
 pub struct DisplayEmulator {
     label: String,
@@ -12,7 +12,7 @@ pub struct DisplayEmulator {
     resolution: (i32, i32),
     ellipse_width: u32,
     ellipse_height: u32,
-    ellipse_thickness: u32
+    ellipse_thickness: u32,
 }
 
 impl Default for DisplayEmulator {
@@ -44,7 +44,7 @@ impl<'a> epi::App for DisplayEmulator {
             resolution,
             ellipse_width,
             ellipse_height,
-            ellipse_thickness
+            ellipse_thickness,
         } = self;
 
         let size = resolution.0 * (resolution.1 as f32 / 8.0).ceil() as i32;
@@ -59,30 +59,34 @@ impl<'a> epi::App for DisplayEmulator {
                 ui.text_edit_singleline(label);
             });
 
-            rugui::geometry::Rect::new_filled(BBox::new((90, 0), (159, 31)), Color::White)
-                .draw(&mut framebuffer);
+            Rect::new_filled(BBox::new((90, 0), (159, 31)), Color::White).draw(&mut framebuffer);
             ui.add(egui::Slider::new(progress, 1..=100).text("progress"));
-            rugui::widgets::ProgressBar::new(BBox::new((15, 5), (90, 15)), *progress, Color::Black)
+            rugui::widgets::progress_bar::ProgressBar::new(BBox::new((15, 5), (90, 15)), *progress, Color::Black)
                 .draw(&mut framebuffer);
 
             ui.add(egui::Slider::new(radius, 0..=16).text("radius"));
             ui.add(egui::Slider::new(circle_thickness, 1..=*radius).text("thickness"));
-            rugui::geometry::Circle::new((120, 16), *radius, Color::Black)
+            Circle::new((120, 16), *radius, Color::Black)
                 .thickness(*circle_thickness)
                 .draw(&mut framebuffer);
 
-            let max_thickness: u32 = if ellipse_height >= ellipse_width { *ellipse_width } else { *ellipse_height };
-            
+            let max_thickness: u32 = if ellipse_height >= ellipse_width {
+                *ellipse_width
+            } else {
+                *ellipse_height
+            };
+
             ui.add(egui::Slider::new(ellipse_width, 1..=50).text("ellipse width"));
             ui.add(egui::Slider::new(ellipse_height, 1..=50).text("ellipse height"));
-            ui.add(egui::Slider::new(ellipse_thickness, 1..=max_thickness).text("ellipse thockness"));
-            rugui::geometry::Ellipse::new(*ellipse_width, *ellipse_height, (25, 25), Color::Black)
+            ui.add(
+                egui::Slider::new(ellipse_thickness, 1..=max_thickness).text("ellipse thockness"),
+            );
+            Ellipse::new(*ellipse_width, *ellipse_height, (25, 25), Color::Black)
                 .thickness(*ellipse_thickness)
                 .draw(&mut framebuffer);
 
-
             if ui.button("Increment").clicked() {
-                use rugui::geometry::Line;
+                use rugui::geometry::line::Line;
                 let mut cords = (*progress as i32, *progress as i32);
                 Line::new(BBox::new(cords, cords), Color::Black).draw(&mut framebuffer);
 
