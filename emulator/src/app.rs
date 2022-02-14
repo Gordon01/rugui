@@ -12,7 +12,7 @@ pub struct DisplayEmulator {
     resolution: (i32, i32),
     ellipse_width: u32,
     ellipse_height: u32,
-    ellipse_thickness: u32
+    ellipse_thickness: u32,
 }
 
 impl Default for DisplayEmulator {
@@ -44,7 +44,7 @@ impl<'a> epi::App for DisplayEmulator {
             resolution,
             ellipse_width,
             ellipse_height,
-            ellipse_thickness
+            ellipse_thickness,
         } = self;
 
         let size = resolution.0 * (resolution.1 as f32 / 8.0).ceil() as i32;
@@ -71,15 +71,20 @@ impl<'a> epi::App for DisplayEmulator {
                 .thickness(*circle_thickness)
                 .draw(&mut framebuffer);
 
-            let max_thickness: u32 = if ellipse_height >= ellipse_width { *ellipse_width } else { *ellipse_height };
-            
+            let max_thickness: u32 = if ellipse_height >= ellipse_width {
+                *ellipse_width
+            } else {
+                *ellipse_height
+            };
+
             ui.add(egui::Slider::new(ellipse_width, 1..=50).text("ellipse width"));
             ui.add(egui::Slider::new(ellipse_height, 1..=50).text("ellipse height"));
-            ui.add(egui::Slider::new(ellipse_thickness, 1..=max_thickness).text("ellipse thockness"));
+            ui.add(
+                egui::Slider::new(ellipse_thickness, 1..=max_thickness).text("ellipse thockness"),
+            );
             rugui::geometry::Ellipse::new(*ellipse_width, *ellipse_height, (25, 25), Color::Black)
                 .thickness(*ellipse_thickness)
                 .draw(&mut framebuffer);
-
 
             if ui.button("Increment").clicked() {
                 use rugui::geometry::Line;

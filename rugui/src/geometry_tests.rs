@@ -29,7 +29,7 @@ mod geometry_tests {
         let ellipse = Ellipse::new(10, 20, (10, 10), Color::Black);
 
         assert_eq!(ellipse.max_thickness(), 10);
-        
+
         let ellipse = Ellipse::new(123, 100, (10, 10), Color::Black);
         assert_eq!(ellipse.max_thickness(), 100);
     }

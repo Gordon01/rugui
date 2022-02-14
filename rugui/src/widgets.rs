@@ -1,6 +1,6 @@
 use super::coordinates::bounding_box::*;
-use super::geometry::*;
 use super::framebuffer::*;
+use super::geometry::*;
 use super::geometry::{Line, Rect};
 
 pub struct ProgressBar {

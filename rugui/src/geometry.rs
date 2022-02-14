@@ -1,7 +1,7 @@
-use crate::coordinates::cvec::Vec2;
 use super::coordinates::bounding_box::*;
 use super::framebuffer::PixelDraw;
 use super::framebuffer::*;
+use crate::coordinates::cvec::Vec2;
 
 pub trait Drawable {
     fn draw<C: PixelDraw>(&self, canvas: &mut C);
@@ -222,7 +222,7 @@ impl Ellipse {
             height,
             width,
             thickness: 1,
-            color
+            color,
         }
     }
 
@@ -239,22 +239,20 @@ impl Ellipse {
     pub fn max_thickness(&self) -> u32 {
         if self.height >= self.width {
             self.width
-        }
-        else {
+        } else {
             self.height
         }
     }
 
     pub fn thickness(mut self, t: u32) -> Self {
         self.thickness = t;
-        if t <= self.height && t <= self.height {
+        if t <= self.height && t <= self.width {
             return self;
         }
         self.thickness = self.max_thickness();
 
         self
     }
-
 }
 
 impl Drawable for Ellipse {
@@ -271,20 +269,13 @@ impl Drawable for Ellipse {
 
         for dx in -width_int..=width_int {
             for dy in -height_int..=height_int {
-                if t == self.max_thickness() {
-                    if dx * dx * height_sqr + dy * dy * width_sqr < height_sqr * width_sqr {
-                        canvas.draw_pixel(x + dx as i32, y + dy as i32, &self.color);
-                    }
-                } else {
-                    if dx * dx * height_sqr + dy * dy * width_sqr < height_sqr * width_sqr
-                        && dx * dx * internal_height_sqr + dy * dy * internal_width_sqr > internal_width_sqr * internal_height_sqr - 1 {
-                        canvas.draw_pixel(x + dx, y + dy, &self.color);
-                    }
-                }              
-                
+                if dx * dx * height_sqr + dy * dy * width_sqr < height_sqr * width_sqr
+                    && dx * dx * internal_height_sqr + dy * dy * internal_width_sqr
+                        > internal_width_sqr * internal_height_sqr - 1
+                {
+                    canvas.draw_pixel(x + dx, y + dy, &self.color);
+                }
             }
         }
-
     }
-
 }
