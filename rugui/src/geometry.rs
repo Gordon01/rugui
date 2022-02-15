@@ -1,8 +1,11 @@
-use crate::coordinates::cvec::Vec2;
-
 use super::coordinates::bounding_box::*;
 use super::framebuffer::PixelDraw;
 use super::framebuffer::*;
+use crate::coordinates::cvec::Vec2;
+
+pub trait Drawable {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C);
+}
 
 pub struct Line {
     bbox: BBox,
@@ -20,6 +23,14 @@ pub struct Rect {
 pub struct Circle {
     center: Vec2,
     r: u32,
+    thickness: u32,
+    color: Color,
+}
+
+pub struct Ellipse {
+    center: Vec2,
+    height: u32,
+    width: u32,
     thickness: u32,
     color: Color,
 }
@@ -42,8 +53,8 @@ impl Line {
     }
 }
 
-impl Line {
-    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+impl Drawable for Line {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
         if self.vertical {
             for y in self.bbox.start.1..=self.bbox.end.1 {
                 canvas.draw_pixel(self.bbox.start.0, y, &self.color);
@@ -95,8 +106,8 @@ impl Rect {
     }
 }
 
-impl Rect {
-    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+impl Drawable for Rect {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
         if self.filled {
             for x in self.bbox.iter_x() {
                 let bbox = BBox::new((x, self.bbox.start.1), self.bbox.end);
@@ -155,18 +166,15 @@ impl Circle {
 
     pub fn thickness(mut self, t: u32) -> Self {
         if t >= 1 {
-            self.thickness = t;
-        }
-        if t >= self.r {
-            self.thickness = self.r;
+            self.thickness = t.min(self.r)
         }
 
         self
     }
 }
 
-impl Circle {
-    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+impl Drawable for Circle {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
         let r = self.r as i32;
         let (x, y) = self.center;
         let t = self.thickness as i32;
@@ -183,6 +191,78 @@ impl Circle {
                     && (dx * dx + dy * dy > ((r - t) * (r - t)) - 1)
                 {
                     canvas.draw_pixel(dx + x, dy + y, &self.color);
+                }
+            }
+        }
+    }
+}
+
+impl Ellipse {
+    pub fn new(width: u32, height: u32, center: Vec2, color: Color) -> Self {
+        Self {
+            center,
+            height,
+            width,
+            thickness: 1,
+            color,
+        }
+    }
+
+    pub fn from_bbox(bbox: BBox, color: Color) -> Self {
+        let width = (bbox.width() / 2) as u32;
+        let height = (bbox.height() / 2) as u32;
+        let x = bbox.start.0 + width as i32;
+        let y = bbox.start.1 + height as i32;
+
+        Self {
+            center: (x, y),
+            height,
+            width,
+            thickness: 1,
+            color,
+        }
+    }
+
+    pub fn filled(mut self, filled: bool) -> Self {
+        if filled {
+            self.thickness = self.max_thickness();
+        } else {
+            self.thickness = 1;
+        }
+
+        self
+    }
+
+    pub fn max_thickness(&self) -> u32 {
+        self.height.min(self.width)
+    }
+
+    pub fn thickness(mut self, t: u32) -> Self {
+        self.thickness = t.min(self.max_thickness());
+
+        self
+    }
+}
+
+impl Drawable for Ellipse {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+        let t = self.thickness;
+        let height_int = self.height as i32;
+        let width_int = self.width as i32;
+        let height_sqr = height_int * height_int;
+        let width_sqr = width_int * width_int;
+        let internal_width_sqr = (width_int - t as i32) * (width_int - t as i32);
+        let internal_height_sqr = (height_int - t as i32) * (height_int - t as i32);
+
+        let (x, y) = self.center;
+
+        for dx in -width_int..=width_int {
+            for dy in -height_int..=height_int {
+                if dx * dx * height_sqr + dy * dy * width_sqr < height_sqr * width_sqr
+                    && dx * dx * internal_height_sqr + dy * dy * internal_width_sqr
+                        > internal_width_sqr * internal_height_sqr - 1
+                {
+                    canvas.draw_pixel(x + dx, y + dy, &self.color);
                 }
             }
         }

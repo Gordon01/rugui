@@ -1,5 +1,6 @@
 use super::coordinates::bounding_box::*;
 use super::framebuffer::*;
+use super::geometry::*;
 use super::geometry::{Line, Rect};
 
 pub struct ProgressBar {
@@ -33,8 +34,8 @@ impl ProgressBar {
     }
 }
 
-impl ProgressBar {
-    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+impl Drawable for ProgressBar {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
         Rect::new(self.bbox, self.color).draw(canvas);
 
         let bbox = self.bbox.transform_both(-1);
@@ -59,8 +60,8 @@ impl Scroller {
     }
 }
 
-impl Scroller {
-    pub fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+impl Drawable for Scroller {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
         if self.orient == Orientation::Vertical {
             Rect::new_filled(self.bbox, Color::White).draw(canvas);
             let position = self.position.min(100);

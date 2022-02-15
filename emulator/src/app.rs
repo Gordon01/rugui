@@ -2,6 +2,7 @@ use super::edisplay::EDisplay;
 use eframe::{egui, epi};
 use rugui::coordinates::bounding_box::BBox;
 use rugui::framebuffer::{Color, Framebuffer};
+use rugui::geometry::Drawable;
 
 pub struct DisplayEmulator {
     label: String,
@@ -9,6 +10,9 @@ pub struct DisplayEmulator {
     circle_thickness: u32,
     progress: u8,
     resolution: (i32, i32),
+    ellipse_width: u32,
+    ellipse_height: u32,
+    ellipse_thickness: u32,
 }
 
 impl Default for DisplayEmulator {
@@ -19,6 +23,9 @@ impl Default for DisplayEmulator {
             circle_thickness: 1,
             progress: 0,
             resolution: (160, 32),
+            ellipse_width: 5,
+            ellipse_height: 3,
+            ellipse_thickness: 1,
         }
     }
 }
@@ -35,6 +42,9 @@ impl<'a> epi::App for DisplayEmulator {
             circle_thickness,
             progress,
             resolution,
+            ellipse_width,
+            ellipse_height,
+            ellipse_thickness,
         } = self;
 
         let size = resolution.0 * (resolution.1 as f32 / 8.0).ceil() as i32;
@@ -59,6 +69,17 @@ impl<'a> epi::App for DisplayEmulator {
             ui.add(egui::Slider::new(circle_thickness, 1..=*radius).text("thickness"));
             rugui::geometry::Circle::new((120, 16), *radius, Color::Black)
                 .thickness(*circle_thickness)
+                .draw(&mut framebuffer);
+
+            let max_thickness: u32 = *ellipse_height.min(ellipse_width);
+
+            ui.add(egui::Slider::new(ellipse_width, 1..=50).text("ellipse width"));
+            ui.add(egui::Slider::new(ellipse_height, 1..=50).text("ellipse height"));
+            ui.add(
+                egui::Slider::new(ellipse_thickness, 1..=max_thickness).text("ellipse thickness"),
+            );
+            rugui::geometry::Ellipse::new(*ellipse_width, *ellipse_height, (25, 25), Color::Black)
+                .thickness(*ellipse_thickness)
                 .draw(&mut framebuffer);
 
             if ui.button("Increment").clicked() {
