@@ -76,7 +76,7 @@ impl<'a> epi::App for DisplayEmulator {
             ui.add(egui::Slider::new(ellipse_width, 1..=50).text("ellipse width"));
             ui.add(egui::Slider::new(ellipse_height, 1..=50).text("ellipse height"));
             ui.add(
-                egui::Slider::new(ellipse_thickness, 1..=max_thickness).text("ellipse thockness"),
+                egui::Slider::new(ellipse_thickness, 1..=max_thickness).text("ellipse thickness"),
             );
             rugui::geometry::Ellipse::new(*ellipse_width, *ellipse_height, (25, 25), Color::Black)
                 .thickness(*ellipse_thickness)

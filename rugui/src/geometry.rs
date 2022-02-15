@@ -166,10 +166,7 @@ impl Circle {
 
     pub fn thickness(mut self, t: u32) -> Self {
         if t >= 1 {
-            self.thickness = t;
-        }
-        if t >= self.r {
-            self.thickness = self.r;
+            self.thickness = t.min(self.r)
         }
 
         self
