@@ -1,42 +1,31 @@
 use super::Drawable;
-use crate::coordinates::bounding_box::BBox;
+use crate::coordinates::{bounding_box::BBox, cvec::Vec2};
 use crate::framebuffer::{Color, PixelDraw};
 
+pub enum ConstructMethod {
+    FromBbox { bbox: BBox, vertical: bool },
+    ByPoints { p1: Vec2, p2: Vec2 },
+}
+
 pub struct Line {
-    bbox: BBox,
+    method: ConstructMethod,
     color: Color,
-    vertical: bool,
 }
 
 impl Line {
-    pub fn new(bbox: BBox, color: Color) -> Self {
-        Self {
-            bbox,
-            color,
-            vertical: false,
-        }
+    pub fn new(method: ConstructMethod, color: Color) -> Self {
+        Self { method, color }
     }
 
-    pub fn new_vertical(bbox: BBox, color: Color) -> Self {
-        Self {
-            bbox,
-            color,
-            vertical: true,
-        }
-    }
-}
-
-impl Drawable for Line {
-    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
-        if self.vertical {
-            for y in self.bbox.start.1..=self.bbox.end.1 {
-                canvas.draw_pixel(self.bbox.start.0, y, &self.color);
+    fn draw_from_bbox<C: PixelDraw>(&self, canvas: &mut C, bbox: BBox, vertical: bool) {
+        if vertical {
+            for y in bbox.start.1..=bbox.end.1 {
+                canvas.draw_pixel(bbox.start.0, y, &self.color);
             }
 
             return;
         }
 
-        let bbox = self.bbox;
         let color = self.color;
 
         let mut delta = 2 * bbox.height() as i32 - bbox.width() as i32;
@@ -57,6 +46,46 @@ impl Drawable for Line {
                 delta -= 2 * bbox.width() as i32;
             }
             delta += 2 * bbox.height() as i32;
+        }
+    }
+
+    fn draw_by_points<C: PixelDraw>(&self, canvas: &mut C, p1: Vec2, p2: Vec2) {
+        let abs = |x: i32| if x < 0 { -x } else { x };
+        let dx = abs(p2.0 - p1.0);
+        let sx = if p1.0 < p2.0 { 1 } else { -1 };
+        let dy = -abs(p2.1 - p1.1);
+        let sy = if p1.1 < p2.1 { 1 } else { -1 };
+
+        let mut err = dx + dy;
+        let mut e2;
+
+        let (mut x, mut y) = (p1.0, p1.1);
+
+        loop {
+            canvas.draw_pixel(x, y, &self.color);
+            if x == p2.0 && y == p2.1 {
+                break;
+            }
+            e2 = 2 * err;
+            if e2 >= dy {
+                err += dy;
+                x += sx;
+            }
+            if e2 <= dx {
+                err += dx;
+                y += sy;
+            }
+        }
+    }
+}
+
+impl Drawable for Line {
+    fn draw<C: PixelDraw>(&self, canvas: &mut C) {
+        match self.method {
+            ConstructMethod::FromBbox { bbox, vertical } => {
+                self.draw_from_bbox(canvas, bbox, vertical);
+            }
+            ConstructMethod::ByPoints { p1, p2 } => self.draw_by_points(canvas, p1, p2),
         }
     }
 }

@@ -1,7 +1,7 @@
 use crate::coordinates::bounding_box::*;
 use crate::framebuffer::*;
-use crate::geometry::line::Line;
 use crate::geometry::*;
+use crate::geometry::{line::ConstructMethod, line::Line};
 
 pub struct Table {
     bbox: BBox,
@@ -28,11 +28,19 @@ impl Table {
 
         for x in bbox.iter_x().step_by(bbox.width() / self.columns as usize) {
             let bbox = BBox::new((x, bbox.start.1), bbox.end);
-            Line::new_vertical(bbox, color).draw(canvas);
+            let method = ConstructMethod::FromBbox {
+                bbox,
+                vertical: true,
+            };
+            Line::new(method, color).draw(canvas);
         }
 
         for y in bbox.iter_y().step_by(bbox.height() / self.rows as usize) {
-            Line::new(BBox::new((bbox.start.0, y), (bbox.end.0, y)), color).draw(canvas);
+            let method = ConstructMethod::FromBbox {
+                bbox: BBox::new((bbox.start.0, y), (bbox.end.0, y)),
+                vertical: false,
+            };
+            Line::new(method, color).draw(canvas);
         }
     }
 }

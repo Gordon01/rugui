@@ -2,6 +2,7 @@ use super::Drawable;
 use crate::coordinates::{bounding_box::BBox, cvec::Vec2};
 use crate::framebuffer::{Color, PixelDraw};
 
+#[derive(PartialEq)]
 pub struct Ellipse {
     center: Vec2,
     height: u32,
@@ -47,19 +48,11 @@ impl Ellipse {
     }
 
     pub fn max_thickness(&self) -> u32 {
-        if self.height >= self.width {
-            self.width
-        } else {
-            self.height
-        }
+        self.height.min(self.width)
     }
 
     pub fn thickness(mut self, t: u32) -> Self {
-        self.thickness = t;
-        if t <= self.height && t <= self.height {
-            return self;
-        }
-        self.thickness = self.max_thickness();
+        self.thickness = t.min(self.max_thickness());
 
         self
     }

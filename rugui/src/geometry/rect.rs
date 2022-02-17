@@ -1,4 +1,4 @@
-use super::{line::Line, Drawable};
+use super::{line::ConstructMethod, line::Line, Drawable};
 use crate::coordinates::bounding_box::BBox;
 use crate::framebuffer::{Color, PixelDraw};
 
@@ -31,7 +31,11 @@ impl Drawable for Rect {
         if self.filled {
             for x in self.bbox.iter_x() {
                 let bbox = BBox::new((x, self.bbox.start.1), self.bbox.end);
-                Line::new_vertical(bbox, self.color).draw(canvas);
+                let method = ConstructMethod::FromBbox {
+                    bbox,
+                    vertical: true,
+                };
+                Line::new(method, self.color).draw(canvas);
             }
 
             return;
@@ -42,9 +46,37 @@ impl Drawable for Rect {
         let bbox = self.bbox;
         let color = self.color;
 
-        Line::new(BBox::new(bbox.start, left_bottom), color).draw(canvas);
-        Line::new(BBox::new(left_bottom, bbox.end), color).draw(canvas);
-        Line::new(BBox::new(right_top, bbox.end), color).draw(canvas);
-        Line::new(BBox::new(bbox.start, right_top), color).draw(canvas);
+        Line::new(
+            ConstructMethod::FromBbox {
+                bbox: BBox::new(bbox.start, left_bottom),
+                vertical: false,
+            },
+            color,
+        )
+        .draw(canvas);
+        Line::new(
+            ConstructMethod::FromBbox {
+                bbox: BBox::new(left_bottom, bbox.end),
+                vertical: false,
+            },
+            color,
+        )
+        .draw(canvas);
+        Line::new(
+            ConstructMethod::FromBbox {
+                bbox: BBox::new(right_top, bbox.end),
+                vertical: false,
+            },
+            color,
+        )
+        .draw(canvas);
+        Line::new(
+            ConstructMethod::FromBbox {
+                bbox: BBox::new(bbox.start, right_top),
+                vertical: false,
+            },
+            color,
+        )
+        .draw(canvas);
     }
 }
