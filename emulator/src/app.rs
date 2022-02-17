@@ -6,7 +6,7 @@ use eframe::{
 use rugui::coordinates::bounding_box::BBox;
 use rugui::framebuffer::{Color, Framebuffer};
 use rugui::geometry::{
-    circle::Circle, ellipse::Ellipse, line::ConstructMethod, line::Line, rect::Rect, Drawable,
+    ellipse::Ellipse, circle::Circle, line::ConstructMethod, line::Line, rect::Rect, Drawable,
 };
 
 pub struct DisplayEmulator {
@@ -79,11 +79,7 @@ impl<'a> epi::App for DisplayEmulator {
                 .thickness(*circle_thickness)
                 .draw(&mut framebuffer);
 
-            let max_thickness: u32 = if ellipse_height >= ellipse_width {
-                *ellipse_width
-            } else {
-                *ellipse_height
-            };
+            let max_thickness: u32 = *ellipse_height.min(ellipse_width);
 
             ui.add(egui::Slider::new(ellipse_width, 1..=50).text("ellipse width"));
             ui.add(egui::Slider::new(ellipse_height, 1..=50).text("ellipse height"));

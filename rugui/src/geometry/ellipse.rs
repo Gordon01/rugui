@@ -70,13 +70,18 @@ impl Drawable for Ellipse {
 
         let (x, y) = self.center;
 
-        for dx in -width_int..=width_int {
-            for dy in -height_int..=height_int {
-                if dx * dx * height_sqr + dy * dy * width_sqr < height_sqr * width_sqr
-                    && dx * dx * internal_height_sqr + dy * dy * internal_width_sqr
+        for dx in 0..width_int {
+            for dy in 0..height_int {
+                let dx_sqr = dx * dx;
+                let dy_sqr = dy * dy;
+                if dx_sqr * height_sqr + dy_sqr * width_sqr < height_sqr * width_sqr
+                    && dx_sqr * internal_height_sqr + dy_sqr * internal_width_sqr
                         > internal_width_sqr * internal_height_sqr - 1
                 {
                     canvas.draw_pixel(x + dx, y + dy, &self.color);
+                    canvas.draw_pixel(x - dx, y + dy, &self.color);
+                    canvas.draw_pixel(x - dx, y - dy, &self.color);
+                    canvas.draw_pixel(x + dx, y - dy, &self.color);
                 }
             }
         }
