@@ -50,10 +50,9 @@ impl Line {
     }
 
     fn draw_by_points<C: PixelDraw>(&self, canvas: &mut C, p1: Vec2, p2: Vec2) {
-        let abs = |x: i32| if x < 0 { -x } else { x };
-        let dx = abs(p2.0 - p1.0);
+        let dx = (p2.0 - p1.0).abs();
         let sx = if p1.0 < p2.0 { 1 } else { -1 };
-        let dy = -abs(p2.1 - p1.1);
+        let dy = -(p2.1 - p1.1).abs();
         let sy = if p1.1 < p2.1 { 1 } else { -1 };
 
         let mut err = dx + dy;
@@ -83,7 +82,7 @@ impl Drawable for Line {
     fn draw<C: PixelDraw>(&self, canvas: &mut C) {
         match self.method {
             ConstructMethod::FromBbox { bbox, vertical } => {
-                self.draw_from_bbox(canvas, bbox, vertical);
+                self.draw_from_bbox(canvas, bbox, vertical)
             }
             ConstructMethod::ByPoints { p1, p2 } => self.draw_by_points(canvas, p1, p2),
         }
