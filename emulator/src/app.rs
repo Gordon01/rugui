@@ -6,7 +6,7 @@ use eframe::{
 use rugui::coordinates::bounding_box::BBox;
 use rugui::framebuffer::{Color, Framebuffer};
 use rugui::geometry::{
-    ellipse::Ellipse, circle::Circle, line::ConstructMethod, line::Line, rect::Rect, Drawable,
+    circle::Circle, ellipse::Ellipse, line::ConstructMethod, line::Line, rect::Rect, Drawable,
 };
 
 pub struct DisplayEmulator {
