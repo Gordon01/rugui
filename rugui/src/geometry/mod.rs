@@ -2,6 +2,7 @@ pub mod circle;
 pub mod ellipse;
 pub mod line;
 pub mod rect;
+pub mod triangle;
 
 mod geometry_tests;
 
